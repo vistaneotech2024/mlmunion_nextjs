@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.rich-text-editor {
+  @apply min-h-[300px];
+}
+
+.rich-text-editor .ql-container {
+  @apply h-[250px];
+}
+
+.rich-text-editor .ql-editor {
+  @apply min-h-full wysiwyg wysiwyg-sm max-w-none;
+}
+
+.rich-text-editor .ql-toolbar {
+  @apply border-gray-300 rounded-t-md bg-gray-50;
+}
+
+.rich-text-editor .ql-container {
+  @apply border-gray-300 rounded-b-md;
+}
+
+.rich-text-editor .ql-editor.ql-blank::before {
+  @apply text-gray-400;
+}
+
+.rich-text-editor .ql-snow.ql-toolbar button:hover,
+.rich-text-editor .ql-snow .ql-toolbar button:hover,
+.rich-text-editor .ql-snow.ql-toolbar button.ql-active,
+.rich-text-editor .ql-snow .ql-toolbar button.ql-active,
+.rich-text-editor .ql-snow.ql-toolbar .ql-picker-label:hover,
+.rich-text-editor .ql-snow .ql-toolbar .ql-picker-label:hover,
+.rich-text-editor .ql-snow.ql-toolbar .ql-picker-label.ql-active,
+.rich-text-editor .ql-snow .ql-toolbar .ql-picker-label.ql-active,
+.rich-text-editor .ql-snow.ql-toolbar .ql-picker-item:hover,
+.rich-text-editor .ql-snow .ql-toolbar .ql-picker-item:hover,
+.rich-text-editor .ql-snow.ql-toolbar .ql-picker-item.ql-selected,
+.rich-text-editor .ql-snow .ql-toolbar .ql-picker-item.ql-selected {
+  @apply text-indigo-600;
+}
+
+.rich-text-editor .ql-snow.ql-toolbar button:hover .ql-stroke,
+.rich-text-editor .ql-snow .ql-toolbar button:hover .ql-stroke,
+.rich-text-editor .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+.rich-text-editor .ql-snow .ql-toolbar button.ql-active .ql-stroke,
+.rich-text-editor .ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke,
+.rich-text-editor .ql-snow .ql-toolbar .ql-picker-label:hover .ql-stroke,
+.rich-text-editor .ql-snow.ql-toolbar .ql-picker-label.ql-active .ql-stroke,
+.rich-text-editor .ql-snow .ql-toolbar .ql-picker-label.ql-active .ql-stroke,
+.rich-text-editor .ql-snow.ql-toolbar .ql-picker-item:hover .ql-stroke,
+.rich-text-editor .ql-snow .ql-toolbar .ql-picker-item:hover .ql-stroke,
+.rich-text-editor .ql-snow.ql-toolbar .ql-picker-item.ql-selected .ql-stroke,
+.rich-text-editor .ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-stroke {
+  @apply stroke-indigo-600;
+}
+
+.rich-text-editor .ql-snow.ql-toolbar button:hover .ql-fill,
+.rich-text-editor .ql-snow .ql-toolbar button:hover .ql-fill,
+.rich-text-editor .ql-snow.ql-toolbar button.ql-active .ql-fill,
+.rich-text-editor .ql-snow .ql-toolbar button.ql-active .ql-fill,
+.rich-text-editor .ql-snow.ql-toolbar .ql-picker-label:hover .ql-fill,
+.rich-text-editor .ql-snow .ql-toolbar .ql-picker-label:hover .ql-fill,
+.rich-text-editor .ql-snow.ql-toolbar .ql-picker-label.ql-active .ql-fill,
+.rich-text-editor .ql-snow .ql-toolbar .ql-picker-label.ql-active .ql-fill,
+.rich-text-editor .ql-snow.ql-toolbar .ql-picker-item:hover .ql-fill,
+.rich-text-editor .ql-snow .ql-toolbar .ql-picker-item:hover .ql-fill,
+.rich-text-editor .ql-snow.ql-toolbar .ql-picker-item.ql-selected .ql-fill,
+.rich-text-editor .ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-fill {
+  @apply fill-indigo-600;
+}
+
+/* Custom scrollbar styles */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}
+
+/* For Firefox */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: theme('colors.gray.300') theme('colors.gray.100');
+}
+
+/* Shine animation for premium card */
+@keyframes shine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.animate-shine {
+  animation: shine 3s infinite;
+}
+
+/* Arrow slide animation */
+@keyframes arrowSlide {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-arrow-slide {
+  animation: arrowSlide 1s ease-in-out infinite;
+}
+
+/* Scrolling carousel animations */
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll-left {
+  animation: scroll-left 30s linear infinite;
+  display: flex;
+  width: fit-content;
+}
+
+.animate-scroll-left-reverse {
+  animation: scroll-left 35s linear infinite;
+  display: flex;
+  width: fit-content;
+}
+
+.animate-scroll-left:hover,
+.animate-scroll-left-reverse:hover {
+  animation-play-state: paused;
+}
+
+/* Less gap between paragraphs in blog post content */
+.blog-content-tight p {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+.blog-content-tight p:first-child {
+  margin-top: 0;
+}
+.blog-content-tight p:last-child {
+  margin-bottom: 0;
+}
+

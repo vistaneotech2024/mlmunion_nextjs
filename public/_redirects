@@ -1,0 +1,7 @@
+# Exclude static files from SPA redirect
+/sitemap.xml /sitemap.xml 200
+/robots.txt /robots.txt 200
+/sitemap.xsl /sitemap.xsl 200
+
+# SPA fallback - must be last
+/* /index.html 200
