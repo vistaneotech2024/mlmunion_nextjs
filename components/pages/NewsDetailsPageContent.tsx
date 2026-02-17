@@ -49,7 +49,7 @@ interface CategoryNews {
   articles: { id: string; title: string; slug?: string; image_url?: string; created_at: string }[];
 }
 
-type Props = { slug: string; id: string };
+type Props = { slug: string };
 
 function formatDate(dateString: string) {
   const date = new Date(dateString);
@@ -72,7 +72,7 @@ function getFirst100Words(htmlContent: string): string {
   return words.join(' ');
 }
 
-export function NewsDetailsPageContent({ slug, id }: Props) {
+export function NewsDetailsPageContent({ slug }: Props) {
   const router = useRouter();
   const { user } = useAuth();
   const [article, setArticle] = React.useState<NewsArticle | null>(null);
@@ -82,14 +82,13 @@ export function NewsDetailsPageContent({ slug, id }: Props) {
   const userId = user?.id;
 
   React.useEffect(() => {
-    const slugOrId = id || slug;
-    if (slugOrId) loadArticle(slugOrId, id);
-  }, [slug, id]);
+    if (slug) loadArticle(slug);
+  }, [slug]);
 
-  async function loadArticle(articleSlugOrId: string, articleId?: string) {
+  async function loadArticle(articleSlugOrId: string) {
     try {
       setLoading(true);
-      const cacheKey = `news_detail_${articleId || articleSlugOrId}`;
+      const cacheKey = `news_detail_${articleSlugOrId}`;
       const cached = cache.get<NewsArticle>(cacheKey);
       if (cached) {
         setArticle(cached);
@@ -101,13 +100,13 @@ export function NewsDetailsPageContent({ slug, id }: Props) {
       }
 
       const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      const fetchById = articleId || uuidPattern.test(articleSlugOrId);
+      const fetchById = uuidPattern.test(articleSlugOrId);
 
       let { data, error } = fetchById
         ? await supabase
             .from('news')
             .select(`*, author:profiles(username, full_name, avatar_url, image_url, id), category:news_categories(id, name)`)
-            .eq('id', articleId || articleSlugOrId)
+            .eq('id', articleSlugOrId)
             .eq('published', true)
             .limit(1)
             .maybeSingle()
@@ -119,18 +118,6 @@ export function NewsDetailsPageContent({ slug, id }: Props) {
             .limit(1)
             .maybeSingle();
 
-      if (!data && !error && !fetchById && uuidPattern.test(articleSlugOrId)) {
-        const res = await supabase
-          .from('news')
-          .select(`*, author:profiles(username, full_name, avatar_url, image_url, id), category:news_categories(id, name)`)
-          .eq('id', articleSlugOrId)
-          .eq('published', true)
-          .limit(1)
-          .maybeSingle();
-        data = res.data;
-        error = res.error;
-      }
-
       if (error) throw error;
       if (!data) {
         router.push('/news');
@@ -138,8 +125,8 @@ export function NewsDetailsPageContent({ slug, id }: Props) {
       }
 
       const canonicalSlug = (data as any).slug || (data as any).id;
-      if (!articleId && (data as any).slug && (data as any).slug !== articleSlugOrId) {
-        router.replace(`/news/${canonicalSlug}/${(data as any).id}`);
+      if ((data as any).slug && (data as any).slug !== articleSlugOrId) {
+        router.replace(`/news/${canonicalSlug}`);
         return;
       }
 
@@ -462,7 +449,7 @@ export function NewsDetailsPageContent({ slug, id }: Props) {
                     {relatedArticles.map((relatedArticle) => (
                       <Link
                         key={relatedArticle.id}
-                        href={`/news/${relatedArticle.slug || relatedArticle.id}/${relatedArticle.id}`}
+                        href={`/news/${relatedArticle.slug || relatedArticle.id}`}
                         className="block group hover:bg-gray-50 p-2 md:p-3 rounded-lg transition-colors border border-gray-200"
                       >
                         {relatedArticle.categoryName && (
@@ -496,7 +483,7 @@ export function NewsDetailsPageContent({ slug, id }: Props) {
                       {categoryData.articles.map((newsItem) => (
                         <Link
                           key={newsItem.id}
-                          href={`/news/${newsItem.slug || newsItem.id}/${newsItem.id}`}
+                          href={`/news/${newsItem.slug || newsItem.id}`}
                           className="group bg-white rounded-lg overflow-hidden hover:shadow-md transition-all duration-300 border border-gray-200"
                         >
                           <div className="relative w-full h-40 md:h-48 overflow-hidden bg-gray-200">

@@ -36,7 +36,7 @@ export function BlogList({ blogs }: { blogs: Blog[] }) {
           return null;
         }
         return (
-        <Link key={blog.id} href={`/blog/${blog.slug || blog.id}/${blog.id}`} className="group">
+        <Link key={blog.id} href={`/blog/${blog.slug || blog.id}`} className="group">
           <article className="bg-white shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col">
             <div className="relative w-full h-40 sm:h-44 md:h-48 overflow-hidden">
               {blog.cover_image ? (

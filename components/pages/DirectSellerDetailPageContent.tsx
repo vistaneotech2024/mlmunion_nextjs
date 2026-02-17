@@ -463,13 +463,13 @@ export function DirectSellerDetailPageContent({ username }: { username: string }
           </Link>
         </div>
 
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pb-4 md:py-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-62 lg:px-8 pb-3 md:py-6">
           <div className="hidden md:block">
-            <Link href={backHref} className="inline-flex items-center text-indigo-100 hover:text-white mb-8 group text-base">
+            <Link href={backHref} className="inline-flex items-center text-indigo-100 hover:text-white mb-4 md:mb-5 group text-base">
               <ArrowLeft className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
               Back
             </Link>
-            <div className="flex flex-row items-start gap-8">
+            <div className="flex flex-row items-start gap-51 md:gap-6">
               <div className="relative flex-shrink-0">
                 <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-white shadow-xl bg-indigo-100 flex items-center justify-center">
                   {seller.image_url ? (
@@ -503,8 +503,8 @@ export function DirectSellerDetailPageContent({ username }: { username: string }
                     )}
                   </div>
                 </div>
-                <p className="text-indigo-100 mb-4 text-base">@{seller.username}</p>
-                <div className="flex flex-row items-center gap-4 text-indigo-100 mb-6 text-sm">
+                <p className="text-indigo-100 mb-2.5 text-base">@{seller.username}</p>
+                <div className="flex flex-row items-center gap-4 text-indigo-100 mb-4 text-sm">
                   <div className="flex items-center">
                     <MapPin className="h-5 w-5 mr-2 flex-shrink-0" />
                     <span className="flex items-center gap-2">
@@ -530,7 +530,7 @@ export function DirectSellerDetailPageContent({ username }: { username: string }
                     <span>Joined {new Date(seller.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2 mb-6">
+                <div className="flex flex-wrap gap-2 mb-4">
                   {seller.specialties?.map((specialty, index) => (
                     <span key={index} className="px-3 py-1 bg-indigo-800 bg-opacity-50 text-white rounded-full text-sm">
                       {specialty}
@@ -756,8 +756,8 @@ export function DirectSellerDetailPageContent({ username }: { username: string }
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 md:py-8 lg:py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6 lg:gap-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 md:py-5 lg:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
           <div className="lg:col-span-2 order-2 lg:order-1">
             <div className="bg-white rounded-lg shadow-sm md:shadow-lg overflow-hidden border border-gray-200 md:border-0">
               <div className="border-b border-gray-200 overflow-x-auto">
@@ -767,7 +767,7 @@ export function DirectSellerDetailPageContent({ username }: { username: string }
                       key={tab}
                       type="button"
                       onClick={() => setActiveTab(tab)}
-                      className={`flex-1 sm:flex-none px-3 sm:px-4 md:px-6 py-2.5 md:py-4 text-sm font-medium text-center border-b-2 transition-colors whitespace-nowrap ${
+                      className={`flex-1 sm:flex-none px-3 sm:px-4 md:px-6 py-2 md:py-3 text-sm font-medium text-center border-b-2 transition-colors whitespace-nowrap ${
                         activeTab === tab ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                       }`}
                     >
@@ -785,7 +785,7 @@ export function DirectSellerDetailPageContent({ username }: { username: string }
                   ))}
                 </nav>
               </div>
-              <div className="p-3 sm:p-4 md:p-6">
+              <div className="p-3 sm:p-4 md:p-5">
                 {loadingActivity ? (
                   <div className="text-center py-12">
                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
@@ -794,14 +794,14 @@ export function DirectSellerDetailPageContent({ username }: { username: string }
                 ) : (
                   <>
                     {activeTab === 'about' && (
-                      <div className="space-y-4 md:space-y-6 lg:space-y-8">
+                      <div className="space-y-3 md:space-y-4 lg:space-y-5">
                         <div>
-                          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-4">About</h2>
+                          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-3">About</h2>
                           <p className="text-sm sm:text-base leading-relaxed text-gray-700">{seller.seller_bio || 'No bio available yet.'}</p>
                         </div>
                         {seller.specialties?.length ? (
                           <div>
-                            <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-2 md:mb-4">Specialties</h3>
+                            <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-2 md:mb-3">Specialties</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4">
                               {seller.specialties.map((specialty, index) => (
                                 <div key={index} className="flex items-start">
@@ -862,7 +862,7 @@ export function DirectSellerDetailPageContent({ username }: { username: string }
                             {(showAllBlogs ? blogPosts : blogPosts.slice(0, 10)).map((blog) => (
                               <Link
                                 key={blog.id}
-                                href={`/blog/${blog.slug || blog.id}/${blog.id}`}
+                                href={`/blog/${blog.slug || blog.id}`}
                                 className="block p-2.5 md:p-4 border border-gray-200 rounded-lg hover:border-indigo-300 hover:shadow-md transition-all"
                               >
                                 <div className="flex items-start gap-2 md:gap-4">
@@ -962,8 +962,8 @@ export function DirectSellerDetailPageContent({ username }: { username: string }
             </div>
           </div>
 
-          <div className="space-y-4 md:space-y-6 lg:space-y-8 order-1 lg:order-2">
-            <div className="bg-white shadow-sm md:shadow-lg p-3 md:p-6 rounded-lg border border-gray-200 md:border-gray-100">
+          <div className="space-y-3 md:space-y-4 lg:space-y-5 order-1 lg:order-2">
+            <div className="bg-white shadow-sm md:shadow-lg p-3 md:p-4 rounded-lg border border-gray-200 md:border-gray-100">
               <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-2 md:mb-3 flex items-center gap-2">
                 <Building2 className="h-4 w-4 md:h-5 md:w-5 text-indigo-600" />
                 <span>Company</span>
@@ -1003,7 +1003,7 @@ export function DirectSellerDetailPageContent({ username }: { username: string }
               )}
             </div>
             {!seller.is_premium && user?.id === seller.id && (
-              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-lg p-4 md:p-6 border border-yellow-200">
+              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-lg p-4 md:p-5 border border-yellow-200">
                 <h3 className="text-base md:text-lg font-semibold text-yellow-900 mb-2">Become a Premium Seller</h3>
                 <p className="text-sm md:text-base text-yellow-800 mb-3 md:mb-4">Verify your income, get a premium badge, and appear in premium seller listings.</p>
                 <Link href="/income-verification" className="block w-full text-center px-3 md:px-4 py-1.5 md:py-2 rounded-md shadow-sm text-xs md:text-sm font-semibold text-white bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700">
@@ -1012,7 +1012,7 @@ export function DirectSellerDetailPageContent({ username }: { username: string }
                 </Link>
               </div>
             )}
-            <div className="bg-white shadow-sm md:shadow-lg p-3 md:p-6 rounded-lg border border-gray-200 md:border-gray-100">
+            <div className="bg-white shadow-sm md:shadow-lg p-3 md:p-4 rounded-lg border border-gray-200 md:border-gray-100">
               <div className="flex items-center justify-between mb-3 md:mb-4">
                 <h3 className="text-base md:text-lg font-semibold text-gray-900">Stats &amp; Achievements</h3>
               </div>

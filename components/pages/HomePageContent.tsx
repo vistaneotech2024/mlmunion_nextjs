@@ -373,7 +373,7 @@ export function HomePageContent() {
                   if (!blog.slug) return null;
                   return (
                     <SwiperSlide key={blog.id}>
-                      <Link href={`/blog/${blog.slug || blog.id}/${blog.id}`} className="group block h-full">
+                      <Link href={`/blog/${blog.slug || blog.id}`} className="group block h-full">
                         <article className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md hover:border-indigo-300 transition-all duration-200 h-full flex flex-col">
                           <div className="relative w-full h-32 sm:h-36 overflow-hidden bg-gray-100">
                             {blog.cover_image ? (

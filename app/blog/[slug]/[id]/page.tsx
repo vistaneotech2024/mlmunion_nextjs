@@ -2,7 +2,6 @@ import { cache } from 'react';
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { BlogDetailsPageContent } from '@/components/pages/BlogDetailsPageContent';
 
 type Props = {
   params: Promise<{ slug: string; id: string }>;
@@ -55,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const description = truncateMetaDescription(rawDescription, 155);
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mlmunion.in';
     const canonicalSlug = data.slug || data.id;
-    const canonical = `${baseUrl}/blog/${canonicalSlug}/${data.id}`;
+    const canonical = `${baseUrl}/blog/${canonicalSlug}`;
     const authorName = Array.isArray(data.author) ? data.author[0]?.full_name || data.author[0]?.username : (data.author as any)?.full_name || (data.author as any)?.username;
 
     return {
@@ -101,7 +100,7 @@ function BlogJsonLd({ blog }: { blog: BlogMeta }) {
     datePublished: blog.created_at,
     author: { '@type': 'Person', name: authorName },
     publisher: { '@type': 'Organization', name: 'MLM Union', url: baseUrl },
-    mainEntityOfPage: { '@type': 'WebPage', '@id': `${baseUrl}/blog/${canonicalSlug}/${blog.id}` },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': `${baseUrl}/blog/${canonicalSlug}` },
   };
   return (
     <script
@@ -116,13 +115,6 @@ export default async function BlogDetailPage({ params }: Props) {
   const blog = await getBlogById(id);
   if (!blog) redirect('/blog');
   const canonicalSlug = blog.slug || blog.id;
-  if (slug !== canonicalSlug) {
-    redirect(`/blog/${canonicalSlug}/${blog.id}`);
-  }
-  return (
-    <>
-      <BlogJsonLd blog={blog} />
-      <BlogDetailsPageContent slug={canonicalSlug} id={blog.id} />
-    </>
-  );
+  // Back-compat: /blog/[slug]/[id] now redirects to /blog/[slug]
+  redirect(`/blog/${canonicalSlug}`);
 }

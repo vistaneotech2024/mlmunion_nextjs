@@ -1663,7 +1663,7 @@ export function CompanyDetailsPageContent({ country_name, slug }: CompanyDetails
                               key={newsItem.id} 
                               className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
                             >
-                              <Link href={`/news/${newsItem.slug || newsItem.id}/${newsItem.id}`} className="block">
+                              <Link href={`/news/${newsItem.slug || newsItem.id}`} className="block">
                                 {/* Image with Category Tag Overlay */}
                                 <div className="relative h-40 sm:h-44 md:h-48 overflow-hidden">
                                   <img
@@ -1836,7 +1836,7 @@ export function CompanyDetailsPageContent({ country_name, slug }: CompanyDetails
                               return (
                                 <Link
                                   key={blog.id}
-                                  href={`/blog/${blog.slug || blog.id}/${blog.id}`}
+                                  href={`/blog/${blog.slug || blog.id}`}
                                   className="group block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md hover:border-indigo-300 transition-all"
                                 >
                                   <article className="h-full flex flex-col">

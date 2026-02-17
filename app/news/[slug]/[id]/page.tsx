@@ -2,7 +2,6 @@ import { cache } from 'react';
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { NewsDetailsPageContent } from '@/components/pages/NewsDetailsPageContent';
 
 type Props = {
   params: Promise<{ slug: string; id: string }>;
@@ -62,7 +61,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const description = truncateMetaDescription(rawDescription, 155);
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mlmunion.in';
     const canonicalSlug = data.slug || data.id;
-    const canonical = `${baseUrl}/news/${canonicalSlug}/${data.id}`;
+    const canonical = `${baseUrl}/news/${canonicalSlug}`;
     const author = Array.isArray(data.author) ? data.author[0] : data.author;
     const authorName = (author as any)?.full_name || (author as any)?.username || 'MLM Union';
     const imageUrl = data.image_url || 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=1200';
@@ -112,7 +111,7 @@ function NewsJsonLd({ article }: { article: NewsMeta }) {
     dateModified: article.created_at,
     author: { '@type': 'Person', name: authorName },
     publisher: { '@type': 'Organization', name: 'MLM Union', url: baseUrl },
-    mainEntityOfPage: { '@type': 'WebPage', '@id': `${baseUrl}/news/${canonicalSlug}/${article.id}` },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': `${baseUrl}/news/${canonicalSlug}` },
   };
   return (
     <script
@@ -129,13 +128,6 @@ export default async function NewsDetailPage({ params }: Props) {
     redirect('/news');
   }
   const canonicalSlug = article.slug || article.id;
-  if (slug !== canonicalSlug) {
-    redirect(`/news/${canonicalSlug}/${article.id}`);
-  }
-  return (
-    <>
-      <NewsJsonLd article={article} />
-      <NewsDetailsPageContent slug={canonicalSlug} id={article.id} />
-    </>
-  );
+  // Back-compat: /news/[slug]/[id] now redirects to /news/[slug]
+  redirect(`/news/${canonicalSlug}`);
 }

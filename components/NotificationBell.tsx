@@ -363,7 +363,7 @@ export function NotificationBell() {
             
             if (!blogError && blogData?.id) {
               const slug = blogData.slug || blogData.id;
-              return `/blog/${slug}/${blogData.id}`;
+              return `/blog/${slug}`;
             }
           } catch (error) {
             console.error('Error finding blog:', error);

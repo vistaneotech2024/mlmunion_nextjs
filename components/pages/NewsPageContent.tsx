@@ -378,7 +378,7 @@ export function NewsPageContent() {
               return (
               <React.Fragment key={article.id}>
                 <article className="group bg-white hover:bg-gray-50 transition-colors">
-                  <Link href={`/news/${article.slug || article.id}/${article.id}`} className="block">
+                  <Link href={`/news/${article.slug || article.id}`} className="block">
                     <div className="flex flex-col sm:flex-row gap-2 md:gap-4 p-2 md:p-3">
                       {/* Image on the left */}
                       <div className="flex-shrink-0 w-full sm:w-32 h-32 md:w-40 md:h-40 overflow-hidden rounded">
@@ -452,7 +452,7 @@ export function NewsPageContent() {
               key={article.id} 
                   className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
             >
-              <Link href={`/news/${article.slug || article.id}/${article.id}`} className="block">
+              <Link href={`/news/${article.slug || article.id}`} className="block">
                     {/* Image with Category Tag Overlay */}
                 <div className="relative h-40 sm:h-44 md:h-48 overflow-hidden">
                   <img

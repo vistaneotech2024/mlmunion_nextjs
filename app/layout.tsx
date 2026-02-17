@@ -1,11 +1,14 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { SidebarProvider } from '@/contexts/SidebarContext'
 import { LayoutShell } from '@/components/LayoutShell'
 import { ScrollToTop } from '@/components/ScrollToTop'
+import { ErrorHandler } from '@/components/ErrorHandler'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -59,15 +62,68 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AuthProvider>
-          <SidebarProvider>
-            <div className="min-h-screen bg-gray-50 flex flex-col">
-              <ScrollToTop />
-              <LayoutShell>{children}</LayoutShell>
-            </div>
-            <Toaster position="top-right" />
-          </SidebarProvider>
-        </AuthProvider>
+        <Script
+          id="metamask-error-handler"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                // Early error handler for MetaMask errors
+                var isMetaMaskError = function(message, source, code) {
+                  var m = String(message || '').toLowerCase();
+                  var s = String(source || '').toLowerCase();
+                  return (
+                    m.indexOf('failed to connect to metamask') !== -1 ||
+                    m.indexOf('metamask') !== -1 ||
+                    s.indexOf('nkbihfbeogaeaoehlefnkodbefgpgknn') !== -1 ||
+                    s.indexOf('inpage.js') !== -1 ||
+                    code === 4001 || // user rejected request
+                    code === -32002 // request already pending
+                  );
+                };
+
+                window.addEventListener('error', function(event) {
+                  var errorMessage = event && event.message;
+                  var errorSource = event && event.filename;
+                  var errorCode = event && event.error && event.error.code;
+                  if (
+                    isMetaMaskError(errorMessage, errorSource, errorCode)
+                  ) {
+                    event.preventDefault();
+                    if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+                    if (event.stopPropagation) event.stopPropagation();
+                    console.warn('MetaMask error suppressed:', errorMessage);
+                  }
+                }, true);
+                
+                window.addEventListener('unhandledrejection', function(event) {
+                  var reason = event && event.reason;
+                  var errorMessage = (reason && reason.message) ? reason.message : String(reason || '');
+                  var errorCode = reason && reason.code;
+                  var errorStack = reason && reason.stack;
+                  if (isMetaMaskError(errorMessage, errorStack, errorCode)) {
+                    event.preventDefault();
+                    if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+                    if (event.stopPropagation) event.stopPropagation();
+                    console.warn('MetaMask connection error suppressed:', errorMessage);
+                  }
+                }, true);
+              })();
+            `,
+          }}
+        />
+        <ErrorHandler />
+        <ErrorBoundary>
+          <AuthProvider>
+            <SidebarProvider>
+              <div className="min-h-screen bg-gray-50 flex flex-col">
+                <ScrollToTop />
+                <LayoutShell>{children}</LayoutShell>
+              </div>
+              <Toaster position="top-right" />
+            </SidebarProvider>
+          </AuthProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )

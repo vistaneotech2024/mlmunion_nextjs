@@ -128,7 +128,7 @@ export function UserBlogList({ blogs, onUpdate }: UserBlogListProps) {
                     <button
                       onClick={() => {
                         const slug = blog.slug || blog.id;
-                        router.push(`/blog/${slug}/${blog.id}`);
+                        router.push(`/blog/${slug}`);
                       }}
                       className="text-blue-600 hover:text-blue-900"
                     >

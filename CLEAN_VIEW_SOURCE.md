@@ -88,7 +88,7 @@ npm run start
 
 ### 3. Check Specific Pages
 - Homepage: `/`
-- Blog pages: `/blog`, `/blog/[slug]/[id]`
+- Blog pages: `/blog`, `/blog/[slug]` (old `/blog/[slug]/[id]` redirects)
 - Company pages: `/companies`, `/company/[slug]`
 - User pages: `/profile/[username]`
 

@@ -39,7 +39,6 @@ interface Blog {
 
 type Props = {
   slug: string;
-  id?: string;
 };
 
 /** Normalize HTML so escaped &lt;br&gt; / &lt;br/&gt; render as line breaks instead of visible "br" text. */
@@ -48,7 +47,7 @@ function normalizeBlogHtml(html: string): string {
   return html.replace(/&lt;br\s*\/?&gt;/gi, '<br />');
 }
 
-export function BlogDetailsPageContent({ slug, id: blogId }: Props) {
+export function BlogDetailsPageContent({ slug }: Props) {
   const router = useRouter();
   const { user } = useAuth();
   const [blog, setBlog] = React.useState<Blog | null>(null);
@@ -59,21 +58,19 @@ export function BlogDetailsPageContent({ slug, id: blogId }: Props) {
   const userId = user?.id;
 
   React.useEffect(() => {
-    if (slug || blogId) {
-      loadBlog(slug, blogId);
-    }
-  }, [slug, blogId]);
+    if (slug) loadBlog(slug);
+  }, [slug]);
 
-  async function loadBlog(blogSlug: string, blogIdParam?: string) {
+  async function loadBlog(blogSlugOrId: string) {
     try {
       setLoading(true);
 
-      const cacheKey = `blog_detail_${blogIdParam || blogSlug}`;
+      const cacheKey = `blog_detail_${blogSlugOrId}`;
       const cached = cache.get<Blog>(cacheKey);
       if (cached) {
         const canonicalSlug = cached.slug || cached.id;
-        if (blogSlug && blogSlug !== canonicalSlug) {
-          router.replace(`/blog/${canonicalSlug}/${cached.id}`);
+        if (blogSlugOrId && blogSlugOrId !== canonicalSlug) {
+          router.replace(`/blog/${canonicalSlug}`);
           return;
         }
         setBlog(cached);
@@ -89,57 +86,28 @@ export function BlogDetailsPageContent({ slug, id: blogId }: Props) {
       let data: any = null;
       let error: any = null;
 
-      if (blogIdParam) {
-        const res = await supabase
-          .from('blog_posts')
-          .select(`
-            *,
-            author:profiles(username, full_name, avatar_url, image_url),
-            category_info:blog_categories(id, name)
-          `)
-          .eq('id', blogIdParam)
-          .maybeSingle();
-        data = res.data;
-        error = res.error;
-      }
-
-      if (!data && !error) {
-        const res = await supabase
-          .from('blog_posts')
-          .select(`
-            *,
-            author:profiles(username, full_name, avatar_url, image_url),
-            category_info:blog_categories(id, name)
-          `)
-          .eq('slug', blogSlug)
-          .maybeSingle();
-        data = res.data;
-        error = res.error;
-      }
-
       if (!data && !error) {
         const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (uuidPattern.test(blogSlug)) {
-          const res = await supabase
-            .from('blog_posts')
-            .select(`
-              *,
-              author:profiles(username, full_name, avatar_url, image_url),
-              category_info:blog_categories(id, name)
-            `)
-            .eq('id', blogSlug)
-            .maybeSingle();
-          data = res.data;
-          error = res.error;
-        }
+        const fetchById = uuidPattern.test(blogSlugOrId);
+        const res = await supabase
+          .from('blog_posts')
+          .select(`
+            *,
+            author:profiles(username, full_name, avatar_url, image_url),
+            category_info:blog_categories(id, name)
+          `)
+          .eq(fetchById ? 'id' : 'slug', blogSlugOrId)
+          .maybeSingle();
+        data = res.data;
+        error = res.error;
       }
 
       if (error) throw error;
       if (!data) throw new Error('Blog post not found');
 
       const canonicalSlug = (data.slug as string) || data.id;
-      if (blogSlug && blogSlug !== canonicalSlug) {
-        router.replace(`/blog/${canonicalSlug}/${data.id}`);
+      if (blogSlugOrId && blogSlugOrId !== canonicalSlug) {
+        router.replace(`/blog/${canonicalSlug}`);
         return;
       }
 
@@ -463,7 +431,7 @@ export function BlogDetailsPageContent({ slug, id: blogId }: Props) {
                         {latestBlogs.map((latestBlog) => (
                           <Link
                             key={latestBlog.id}
-                            href={`/blog/${latestBlog.slug || latestBlog.id}/${latestBlog.id}`}
+                            href={`/blog/${latestBlog.slug || latestBlog.id}`}
                             className="block group hover:bg-gray-50 p-2 md:p-3 rounded-lg transition-colors border border-gray-200"
                           >
                             {latestBlog.cover_image && (
