@@ -48,7 +48,7 @@ Object.keys(process.env)
   .forEach(key => console.log(`  - ${key}: ${key.includes('KEY') ? '***' : process.env[key]}`));
 
 if (!supabaseUrl || !supabaseKey) {
-  console.error('\n❌ Error: Missing Supabase credentials!');
+  console.error('\n Error: Missing Supabase credentials!');
   console.error('\nExpected variables:');
   console.error('  - VITE_SUPABASE_URL or SUPABASE_URL');
   console.error('  - VITE_SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SERVICE_ROLE_KEY');
@@ -59,7 +59,7 @@ if (!supabaseUrl || !supabaseKey) {
   process.exit(1);
 }
 
-console.log('✅ Credentials found!\n');
+console.log(' Credentials found!\n');
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -99,7 +99,7 @@ function cleanValue(value, type = 'text') {
 
 // Create tables using direct SQL execution via REST API
 async function createTables() {
-  console.log('📋 Creating tables...\n');
+  console.log(' Creating tables...\n');
   
   // Use the REST API to execute SQL directly
   const createTablesSQL = `
