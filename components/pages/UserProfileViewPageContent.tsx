@@ -20,6 +20,7 @@ import {
   Mail,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { ExperienceManagement } from '@/components/ExperienceManagement';
 
 type Profile = {
   id: string;
@@ -525,6 +526,11 @@ export function UserProfileViewPageContent() {
                   </span>
                 </div>
               </div>
+            </div>
+
+            {/* Experience Section */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <ExperienceManagement userId={profile.id} isEditable={false} />
             </div>
           </div>
 

@@ -38,6 +38,7 @@ interface Classified {
   view_count: number;
   image_url?: string;
   url?: string;
+  slug?: string;
   user: {
     username: string;
     full_name: string;
@@ -511,127 +512,123 @@ export function AdminClassifiedsPageContent() {
         ) : classifieds.length === 0 ? (
           <div className="text-center py-12 text-gray-500">No classifieds found.</div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {classifieds.map((classified) => (
-              <div key={classified.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
-                <div className="flex flex-col md:flex-row">
-                  {/* Image */}
-                  <div className="w-full md:w-64 h-40 md:h-40 flex-shrink-0 bg-gray-100">
-                    {classified.image_url ? (
-                      <img
-                        src={classified.image_url}
-                        alt={classified.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-                        No image
-                      </div>
+              <div
+                key={classified.id}
+                className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 flex flex-col hover:shadow-md transition-shadow"
+              >
+                {/* Image */}
+                <div className="w-full h-48 flex-shrink-0 bg-gray-100 overflow-hidden">
+                  {classified.image_url ? (
+                    <img
+                      src={classified.image_url}
+                      alt={classified.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+                      No image
+                    </div>
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 p-4 flex flex-col min-h-0">
+                  <div className="flex items-start gap-2 mb-1">
+                    <h3 className="text-base font-semibold text-gray-900 line-clamp-2 flex-1 min-w-0">
+                      {classified.title}
+                    </h3>
+                    {classified.is_premium && (
+                      <span className="inline-flex items-center shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        <Star className="h-3 w-3 mr-0.5" />
+                        Premium
+                      </span>
                     )}
                   </div>
-
-                  {/* Content */}
-                  <div className="flex-1 p-4 md:p-6">
-                    <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-lg font-semibold text-gray-900">{classified.title}</h3>
-                          {classified.is_premium && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                              <Star className="h-3 w-3 mr-1" />
-                              Premium
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {stripHtmlTags(classified.description).slice(0, 160)}
-                          {stripHtmlTags(classified.description).length > 160 ? '…' : ''}
-                        </p>
-                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500">
-                          {classified.category_name && (
-                            <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700">
-                              {classified.category_name}
-                            </span>
-                          )}
-                          <span>{classified.user.full_name}</span>
-                          <span>•</span>
-                          <span>{new Date(classified.created_at).toLocaleDateString()}</span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            <Eye className="h-3 w-3" />
-                            {classified.view_count}
-                          </span>
-                          <span>•</span>
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                              classified.status === 'active'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-gray-100 text-gray-700'
-                            }`}
-                          >
-                            {classified.status === 'active' ? 'Active' : 'Inactive'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex flex-wrap items-center justify-start md:justify-end gap-2">
-                        {classified.url && (
-                          <Link
-                            href={classified.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full"
-                            title="Open URL"
-                          >
-                            <ExternalLink className="h-5 w-5" />
-                          </Link>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => togglePremium(classified.id, classified.is_premium)}
-                          className={`p-2 rounded-full ${
-                            classified.is_premium ? 'text-yellow-500 hover:bg-yellow-50' : 'text-gray-400 hover:bg-gray-100'
-                          }`}
-                          title={classified.is_premium ? 'Remove premium' : 'Mark as premium'}
-                        >
-                          <Star className="h-5 w-5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => toggleStatus(classified.id, classified.status)}
-                          className={`p-2 rounded-full ${
-                            classified.status === 'active'
-                              ? 'text-green-500 hover:bg-green-50'
-                              : 'text-gray-400 hover:bg-gray-100'
-                          }`}
-                          title={classified.status === 'active' ? 'Set inactive' : 'Set active'}
-                        >
-                          {classified.status === 'active' ? (
-                            <CheckCircle className="h-5 w-5" />
-                          ) : (
-                            <XCircle className="h-5 w-5" />
-                          )}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => router.push(`/admin/classifieds/edit/${classified.id}`)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
-                          title="Edit"
-                        >
-                          <Edit className="h-5 w-5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => deleteClassified(classified.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-full"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </div>
+                  <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                    {stripHtmlTags(classified.description).slice(0, 120)}
+                    {stripHtmlTags(classified.description).length > 120 ? '…' : ''}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500 mt-auto">
+                    {classified.category_name && (
+                      <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700">
+                        {classified.category_name}
+                      </span>
+                    )}
+                    <span className="truncate">{classified.user?.full_name}</span>
+                    <span>{new Date(classified.created_at).toLocaleDateString()}</span>
+                    <span className="flex items-center gap-0.5">
+                      <Eye className="h-3 w-3" />
+                      {classified.view_count}
+                    </span>
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                        classified.status === 'active'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      {classified.status === 'active' ? 'Active' : 'Inactive'}
+                    </span>
                   </div>
+                </div>
+
+                {/* Actions */}
+                <div className="px-4 pb-4 pt-0 flex flex-wrap items-center justify-end gap-1 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreviewClassified(classified);
+                      setShowPreviewModal(true);
+                    }}
+                    className="p-2 text-purple-600 hover:bg-purple-50 rounded-full"
+                    title="Preview"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => togglePremium(classified.id, classified.is_premium)}
+                    className={`p-2 rounded-full ${
+                      classified.is_premium ? 'text-yellow-500 hover:bg-yellow-50' : 'text-gray-400 hover:bg-gray-100'
+                    }`}
+                    title={classified.is_premium ? 'Remove premium' : 'Mark as premium'}
+                  >
+                    <Star className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleStatus(classified.id, classified.status)}
+                    className={`p-2 rounded-full ${
+                      classified.status === 'active'
+                        ? 'text-green-500 hover:bg-green-50'
+                        : 'text-gray-400 hover:bg-gray-100'
+                    }`}
+                    title={classified.status === 'active' ? 'Set inactive' : 'Set active'}
+                  >
+                    {classified.status === 'active' ? (
+                      <CheckCircle className="h-4 w-4" />
+                    ) : (
+                      <XCircle className="h-4 w-4" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/admin/classifieds/edit/${classified.id}`)}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
+                    title="Edit"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteClassified(classified.id)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-full"
+                    title="Delete"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             ))}
@@ -711,6 +708,152 @@ export function AdminClassifiedsPageContent() {
           onClose={() => setShowAIGenerator(false)}
           onGenerated={handleAIGenerated}
         />
+      )}
+
+      {/* Preview modal */}
+      {showPreviewModal && previewClassified && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
+              <h2 className="text-xl font-bold text-gray-900">Classified Preview</h2>
+              <div className="flex items-center gap-3">
+                {previewClassified.slug && (
+                  <Link
+                    href={`/classifieds/${previewClassified.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded-md"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-1.5" />
+                    View Live
+                  </Link>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPreviewModal(false);
+                    setPreviewClassified(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Image */}
+              {previewClassified.image_url && (
+                <div className="w-full h-64 md:h-80 bg-gray-100 rounded-lg overflow-hidden">
+                  <img
+                    src={previewClassified.image_url}
+                    alt={previewClassified.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+
+              {/* Title and Badges */}
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{previewClassified.title}</h1>
+                    {previewClassified.is_premium && (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                        <Star className="h-4 w-4 mr-1" />
+                        Premium
+                      </span>
+                    )}
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                        previewClassified.status === 'active'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      {previewClassified.status === 'active' ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Meta Information */}
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 pb-4 border-b border-gray-200">
+                {previewClassified.category_name && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-700">Category:</span>
+                    <span className="px-2 py-1 rounded bg-indigo-50 text-indigo-700">
+                      {previewClassified.category_name}
+                    </span>
+                  </div>
+                )}
+                {previewClassified.user?.full_name && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-700">Author:</span>
+                    <span>{previewClassified.user.full_name}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-gray-700">Created:</span>
+                  <span>{new Date(previewClassified.created_at).toLocaleDateString()}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4" />
+                  <span>{previewClassified.view_count} views</span>
+                </div>
+              </div>
+
+              {/* URL */}
+              {previewClassified.url && (
+                <div>
+                  <span className="text-sm font-medium text-gray-700">Website URL:</span>
+                  <Link
+                    href={previewClassified.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-2 text-indigo-600 hover:text-indigo-700 hover:underline"
+                  >
+                    {previewClassified.url}
+                  </Link>
+                </div>
+              )}
+
+              {/* Description */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Description</h3>
+                <div
+                  className="prose prose-sm max-w-none text-gray-700"
+                  dangerouslySetInnerHTML={{ __html: previewClassified.description }}
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPreviewModal(false);
+                    setPreviewClassified(null);
+                  }}
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPreviewModal(false);
+                    router.push(`/admin/classifieds/edit/${previewClassified.id}`);
+                  }}
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Classified
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Create classified modal */}

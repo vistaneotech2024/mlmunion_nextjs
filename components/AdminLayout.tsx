@@ -82,7 +82,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       <div className="flex">
         {/* Sidebar */}
         <div className={`
-          ${sidebarCollapsed ? 'w-20 lg:w-20' : 'w-80 max-w-[85vw] lg:max-w-none lg:w-80'} 
+          ${sidebarCollapsed ? 'w-20 lg:w-20' : 'w-64 max-w-[85vw] lg:max-w-none lg:w-64'} 
           bg-white shadow-2xl border-l border-gray-200 h-screen flex flex-col fixed right-0 lg:left-0 lg:right-auto top-0 bottom-0 transform transition-transform duration-300 ease-out z-[70]
           ${isMobileSidebarOpen ? 'translate-x-0' : 'translate-x-full'}
           lg:translate-x-0 lg:shadow-sm lg:border-l-0 lg:border-r lg:border-gray-200
@@ -90,14 +90,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <div className="px-4 py-4 sm:px-5 sm:py-5 lg:p-6 border-b border-gray-200 flex-shrink-0 bg-white">
             <div className="flex items-center justify-between">
               {!sidebarCollapsed && (
-                <h1 className="text-xl sm:text-2xl font-bold text-indigo-600 whitespace-nowrap">Admin Panel</h1>
+                <Link href="/" className="hover:opacity-80 transition-opacity">
+                  <h1 className="text-xl sm:text-2xl font-bold text-indigo-600 whitespace-nowrap cursor-pointer">Admin Panel</h1>
+                </Link>
               )}
               {sidebarCollapsed && (
-                <div className="flex justify-center w-full">
-                  <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center">
+                <Link href="/" className="flex justify-center w-full hover:opacity-80 transition-opacity">
+                  <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center cursor-pointer">
                     <span className="text-white font-bold text-sm">A</span>
                   </div>
-                </div>
+                </Link>
               )}
               {/* Mobile Close Button */}
               <button
@@ -208,7 +210,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </div>
 
         {/* Main Content */}
-        <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-80'}`}>
+        <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
           {/* Top bar with toggle button - Sticky */}
           <div className="bg-white shadow-sm p-3 sm:p-4 flex justify-between items-center sticky top-0 z-40 w-full">
             <div className="flex items-center gap-2 sm:gap-4">

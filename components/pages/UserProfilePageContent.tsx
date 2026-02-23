@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { ProfileImage } from '@/components/ProfileImage';
 import { ImageUpload } from '@/components/ImageUpload';
 import { FormField } from '@/components/FormField';
+import { ExperienceManagement } from '@/components/ExperienceManagement';
 import {
   User,
   Mail,
@@ -635,6 +636,11 @@ export function UserProfilePageContent() {
                   </div>
                 </>
               )}
+
+              {/* Experience Section */}
+              <div className="bg-white border border-gray-100 rounded-lg p-6">
+                <ExperienceManagement userId={user.id} isEditable={true} />
+              </div>
 
               <div className="flex justify-end space-x-3">
                 <button
