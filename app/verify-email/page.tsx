@@ -1,7 +1,11 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import { VerifyEmailContent } from '@/components/pages/VerifyEmailContent';
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mlmunion.in';
+
+// Force dynamic so this route is always available in production (avoids 404 on some hosts)
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Verify your email - MLM Union',
@@ -25,14 +29,18 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
-type Props = {
-  searchParams: { email?: string };
-};
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<VerifyEmailFallback />}>
+      <VerifyEmailContent />
+    </Suspense>
+  );
+}
 
-export default function VerifyEmailPage({ searchParams }: Props) {
-  const email = searchParams?.email
-    ? decodeURIComponent(searchParams.email)
-    : undefined;
-
-  return <VerifyEmailContent email={email} />;
+function VerifyEmailFallback() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
+    </div>
+  );
 }

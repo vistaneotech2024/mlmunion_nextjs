@@ -2,14 +2,20 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Mail, ArrowLeft } from 'lucide-react';
 
 interface VerifyEmailContentProps {
   email?: string;
 }
 
-export function VerifyEmailContent({ email }: VerifyEmailContentProps) {
-  const displayEmail = email && typeof email === 'string' ? email.trim() : '';
+export function VerifyEmailContent({ email: emailProp }: VerifyEmailContentProps) {
+  const searchParams = useSearchParams();
+  const emailFromUrl = searchParams?.get('email');
+  const displayEmail = [emailProp, emailFromUrl]
+    .filter(Boolean)
+    .map((e) => (typeof e === 'string' ? decodeURIComponent(e).trim() : ''))
+    .find(Boolean) || '';
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
