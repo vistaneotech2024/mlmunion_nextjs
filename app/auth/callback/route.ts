@@ -11,6 +11,10 @@ import { NextResponse } from 'next/server'
  * - Site URL: https://www.mlmunion.in
  * - Redirect URLs: https://www.mlmunion.in/auth/callback (and http://localhost:3000/auth/callback for dev)
  */
+
+// Force dynamic so this route is always available in production (avoids 404 on some hosts)
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
@@ -18,18 +22,25 @@ export async function GET(request: Request) {
   const next = nextParam && nextParam.startsWith('/') ? nextParam.slice(1) : nextParam || 'dashboard'
 
   if (code) {
-    const supabase = createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (error) {
-      console.error('Auth callback exchangeCodeForSession error:', error.message)
+      if (error) {
+        console.error('Auth callback exchangeCodeForSession error:', error.message)
+        return NextResponse.redirect(
+          new URL(`/login?error=${encodeURIComponent(error.message)}`, requestUrl.origin)
+        )
+      }
+
+      const redirectPath = next ? `/${next}` : '/dashboard'
+      return NextResponse.redirect(new URL(redirectPath, requestUrl.origin))
+    } catch (err) {
+      console.error('Auth callback error:', err)
       return NextResponse.redirect(
-        new URL(`/login?error=${encodeURIComponent(error.message)}`, requestUrl.origin)
+        new URL(`/login?error=${encodeURIComponent('Verification failed. Please try again.')}`, requestUrl.origin)
       )
     }
-
-    const redirectPath = next ? `/${next}` : '/dashboard'
-    return NextResponse.redirect(new URL(redirectPath, requestUrl.origin))
   }
 
   return NextResponse.redirect(requestUrl.origin)
