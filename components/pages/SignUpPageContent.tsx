@@ -289,16 +289,75 @@ export function SignUpPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Create your account
-        </h2>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center py-6 px-3 sm:px-4 lg:px-6">
+      <div className="w-full max-w-5xl grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.95fr)] items-center">
+        {/* Left side: brand / benefits */}
+        <div className="text-white space-y-6">
+          <p className="inline-flex items-center rounded-full bg-slate-800/70 px-3 py-1 text-xs font-medium uppercase tracking-wide text-emerald-300 ring-1 ring-emerald-400/30">
+            <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            Join the MLM Union community
+          </p>
+          <div>
+            <h1 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight">
+              Create your{' '}
+              <span className="bg-gradient-to-r from-emerald-300 via-sky-300 to-indigo-300 bg-clip-text text-transparent">
+                free account
+              </span>
+            </h1>
+            <p className="mt-4 max-w-xl text-sm sm:text-base text-slate-300/90">
+              Showcase your direct selling business, publish classifieds and blogs, and connect
+              with verified direct sellers and companies across the MLM ecosystem.
+            </p>
+          </div>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-slate-200/90">
+            <div className="flex items-start gap-3">
+              <div className="mt-1 h-6 w-6 flex items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300">
+                ✓
+              </div>
+              <div>
+                <dt className="font-medium">Grow your network</dt>
+                <dd className="text-slate-300/80">
+                  Discover serious networkers and high‑quality opportunities.
+                </dd>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="mt-1 h-6 w-6 flex items-center justify-center rounded-full bg-sky-500/15 text-sky-300">
+                ✓
+              </div>
+              <div>
+                <dt className="font-medium">Promote your brand</dt>
+                <dd className="text-slate-300/80">
+                  Create a professional presence with companies, classifieds, and blogs.
+                </dd>
+              </div>
+            </div>
+          </dl>
+          <p className="pt-2 text-xs text-slate-400 max-w-md">
+            By creating an account, you agree to our{' '}
+            <Link href="/terms" className="text-emerald-300 hover:text-emerald-200 underline-offset-2 hover:underline">
+              Terms of Use
+            </Link>{' '}
+            and{' '}
+            <Link href="/privacy" className="text-emerald-300 hover:text-emerald-200 underline-offset-2 hover:underline">
+              Privacy Policy
+            </Link>
+            .
+          </p>
+        </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+        {/* Right side: sign up form */}
+        <div className="bg-white/95 backdrop-blur-sm shadow-2xl shadow-slate-950/40 border border-slate-200/70 rounded-2xl p-6 sm:p-8">
+          <div className="mb-4">
+            <h2 className="text-lg sm:text-xl font-semibold text-slate-900">
+              Create your account
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              It only takes a minute. We&apos;ll send you a verification email to activate your account.
+            </p>
+          </div>
+
+          <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
             <div>
               <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
                 Full Name
@@ -310,7 +369,7 @@ export function SignUpPageContent() {
                 <input
                   {...register('fullName', { required: 'Full name is required' })}
                   disabled={isSubmitting}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="appearance-none block w-full pl-10 pr-3 py-2.5 rounded-lg border border-gray-200 bg-white/90 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-indigo-500 transition disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                   placeholder="John Doe"
                 />
               </div>
@@ -360,7 +419,7 @@ export function SignUpPageContent() {
                       setValue('username', emailUsername, { shouldValidate: false });
                     }
                   }}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="appearance-none block w-full pl-10 pr-3 py-2.5 rounded-lg border border-gray-200 bg-white/90 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-indigo-500 transition disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                 />
               </div>
               {errors.email && (
@@ -391,7 +450,7 @@ export function SignUpPageContent() {
                   type="text"
                   placeholder="jondon"
                   disabled={isSubmitting}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="appearance-none block w-full pl-10 pr-3 py-2.5 rounded-lg border border-gray-200 bg-white/90 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-indigo-500 transition disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                 />
               </div>
               {errors.username && (
@@ -412,7 +471,7 @@ export function SignUpPageContent() {
                     value={phoneCountryCode}
                     onChange={(e) => handleCountryCodeChange(e.target.value)}
                     disabled={loadingCountries || isSubmitting}
-                    className="appearance-none block w-48 sm:w-56 py-2 pl-2 pr-6 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    className="appearance-none block w-44 sm:w-52 py-1.5 pl-2 pr-8 rounded-md border border-gray-200 bg-white/90 text-xs sm:text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                     title={
                       loadingCountries
                         ? 'Loading countries...'
@@ -484,7 +543,7 @@ export function SignUpPageContent() {
                     placeholder="1234567890"
                     maxLength={11}
                     disabled={isSubmitting}
-                    className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    className="appearance-none block w-full pl-10 pr-3 py-2.5 rounded-lg border border-gray-200 bg-white/90 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-indigo-500 transition disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                     type="tel"
                     onInput={(e) => {
                       // Only allow numbers
@@ -534,7 +593,7 @@ export function SignUpPageContent() {
                   })}
                   type="password"
                   disabled={isSubmitting}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="appearance-none block w-full pl-10 pr-3 py-2.5 rounded-lg border border-gray-200 bg-white/90 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-indigo-500 transition disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                 />
               </div>
               {errors.password && (
@@ -557,7 +616,7 @@ export function SignUpPageContent() {
                   })}
                   type="password"
                   disabled={isSubmitting}
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="appearance-none block w-full pl-10 pr-3 py-2.5 rounded-lg border border-gray-200 bg-white/90 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/70 focus:border-indigo-500 transition disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                 />
               </div>
               {errors.confirmPassword && (
@@ -566,16 +625,16 @@ export function SignUpPageContent() {
             </div>
 
             {showSuccess ? (
-              <div className="rounded-md bg-green-50 p-4 border border-green-200">
-                <div className="flex items-center">
-                  <CheckCircle2 className="h-5 w-5 text-green-600 mr-2" />
+              <div className="rounded-lg bg-emerald-50 p-4 border border-emerald-200">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-600" />
                   <div>
-                    <h3 className="text-sm font-medium text-green-800">
-                      Verification email sent!
+                    <h3 className="text-sm font-semibold text-emerald-900">
+                      Verification email sent
                     </h3>
-                    <p className="mt-1 text-sm text-green-700">
+                    <p className="mt-1 text-sm text-emerald-800">
                       Please check your inbox and click the verification link to activate your
-                      account.
+                      account. This helps us keep the community safe and spam‑free.
                     </p>
                   </div>
                 </div>
@@ -585,7 +644,7 @@ export function SignUpPageContent() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <>
@@ -593,7 +652,7 @@ export function SignUpPageContent() {
                       Sending verification email...
                     </>
                   ) : (
-                    'Sign up'
+                    'Create account'
                   )}
                 </button>
               </div>
@@ -615,7 +674,7 @@ export function SignUpPageContent() {
                 type="button"
                 onClick={() => handleSocialSignUp('google')}
                 disabled={isSubmitting}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-200 rounded-md shadow-sm bg-white text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Chrome className="h-5 w-5 text-red-500" />
               </button>
@@ -623,7 +682,7 @@ export function SignUpPageContent() {
                 type="button"
                 onClick={() => handleSocialSignUp('facebook')}
                 disabled={isSubmitting}
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-200 rounded-md shadow-sm bg-white text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Facebook className="h-5 w-5 text-blue-600" />
               </button>
