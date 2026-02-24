@@ -9,6 +9,7 @@ import { LayoutShell } from '@/components/LayoutShell'
 import { ScrollToTop } from '@/components/ScrollToTop'
 import { ErrorHandler } from '@/components/ErrorHandler'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { AuthCodeHandler } from '@/components/AuthCodeHandler'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -117,6 +118,7 @@ export default function RootLayout({
           <AuthProvider>
             <SidebarProvider>
               <div className="min-h-screen bg-gray-50 flex flex-col">
+                <AuthCodeHandler />
                 <ScrollToTop />
                 <LayoutShell>{children}</LayoutShell>
               </div>
