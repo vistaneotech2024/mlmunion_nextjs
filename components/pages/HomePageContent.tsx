@@ -219,49 +219,73 @@ export function HomePageContent() {
             <div className="absolute -top-10 -left-10 w-20 h-60 bg-white opacity-10 rotate-12 transform-gpu animate-shine" />
           </div>
 
-          {/* MLM Companies Directory */}
-          <div className="bg-white shadow-xl overflow-hidden transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 md:col-span-2">
-            <div className="p-5 sm:p-6">
-              <div className="bg-indigo-100 p-2.5 sm:p-3 rounded-full inline-block mb-4">
-                <Building2 className="h-6 w-6 sm:h-7 sm:w-7 text-indigo-600" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">MLM Companies Directory</h3>
-              <p className="text-sm sm:text-base text-gray-600 mb-4">
-                Explore legitimate network marketing opportunities with top-rated companies.
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-                <div className="bg-gray-100 rounded-md p-2 flex items-center justify-center">
-                  <span className="text-xs font-medium text-gray-800">Herbalife</span>
+        {/* MLM Companies Directory */}
+        <div className="md:col-span-2">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-50 via-white to-sky-50 border border-indigo-100 shadow-xl transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-indigo-500/10 blur-2xl" />
+            <div className="absolute -left-16 bottom-0 h-32 w-32 rounded-full bg-sky-400/10 blur-2xl" />
+
+            <div className="relative p-5 sm:p-6 lg:p-7 flex flex-col gap-5">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="bg-indigo-100 p-2.5 sm:p-3 rounded-full flex items-center justify-center">
+                    <Building2 className="h-6 w-6 sm:h-7 sm:w-7 text-indigo-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                      MLM Companies Directory
+                    </h3>
+                    <p className="mt-1 text-sm sm:text-base text-gray-600 max-w-xl">
+                      Explore legitimate network marketing opportunities with vetted, top‑rated companies.
+                    </p>
+                  </div>
                 </div>
-                <div className="bg-gray-100 rounded-md p-2 flex items-center justify-center">
-                  <span className="text-xs font-medium text-gray-800">Amway</span>
-                </div>
-                <div className="bg-gray-100 rounded-md p-2 flex items-center justify-center">
-                  <span className="text-xs font-medium text-gray-800">Avon</span>
-                </div>
-                <div className="bg-gray-100 rounded-md p-2 flex items-center justify-center">
-                  <span className="text-xs font-medium text-gray-800">doTERRA</span>
-                </div>
-              </div>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 text-xs sm:text-sm text-gray-500 mb-4">
-                <div className="flex items-center">
-                  <CheckCircle className="h-4 w-4 mr-1 text-green-500" />
-                  <span>Verified Reviews</span>
-                </div>
-                <div className="flex items-center">
-                  <TrendingUp className="h-4 w-4 mr-1 text-indigo-500" />
-                  <span>Growth Metrics</span>
+                <div className="inline-flex items-center rounded-full bg-indigo-600/5 px-3 py-1 text-xs font-medium text-indigo-700 border border-indigo-100">
+                  <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                  Curated directory
                 </div>
               </div>
-              <Link
-                href="/companies"
-                className="inline-flex items-center justify-between w-full px-4 py-2.5 sm:py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white text-sm sm:text-base font-medium transition-colors"
-              >
-                <span>Browse Companies</span>
-                <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Link>
+
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div className="space-y-3 sm:space-y-4 flex-1">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {['Herbalife', 'Amway', 'Avon', 'doTERRA'].map((name) => (
+                      <div
+                        key={name}
+                        className="bg-white/80 rounded-md px-3 py-2 flex items-center justify-center border border-gray-100 text-center text-xs font-medium text-gray-800 shadow-sm"
+                      >
+                        {name}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-gray-600">
+                    <div className="inline-flex items-center">
+                      <CheckCircle className="h-4 w-4 mr-1 text-emerald-500" />
+                      <span>Verified reviews & compliance checks</span>
+                    </div>
+                    <div className="inline-flex items-center">
+                      <TrendingUp className="h-4 w-4 mr-1 text-indigo-500" />
+                      <span>Growth and stability metrics</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full sm:w-auto">
+                  <Link
+                    href="/companies"
+                    className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 sm:py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm sm:text-base font-semibold shadow-lg shadow-indigo-500/30 transition-colors"
+                  >
+                    <span>Browse Companies</span>
+                    <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                  </Link>
+                  <p className="mt-2 text-[11px] sm:text-xs text-gray-500 text-center sm:text-right">
+                    Updated weekly with new companies and review data.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
         </div>
 
         {/* Classifieds Section */}
