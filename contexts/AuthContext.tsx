@@ -5,6 +5,17 @@ import { createClient } from '@/lib/supabase/client'
 import { User, Provider } from '@supabase/supabase-js'
 import toast from 'react-hot-toast'
 
+const getBaseUrl = () => {
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL
+  if (envUrl && typeof envUrl === 'string') {
+    return envUrl.replace(/\/$/, '')
+  }
+  if (typeof window !== 'undefined') {
+    return window.location.origin.replace(/\/$/, '')
+  }
+  return ''
+}
+
 interface AuthContextType {
   user: User | null
   loading: boolean
@@ -132,7 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       // Get the correct redirect URL for email verification callback
-      const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : ''
+      const redirectUrl = `${getBaseUrl()}/auth/callback`
       
       // Always extract username from email (part before @)
       let username = metadata?.username
@@ -307,7 +318,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithSocial = async (provider: Provider) => {
     try {
-      const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : ''
+      const redirectUrl = `${getBaseUrl()}/auth/callback`
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -342,7 +353,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (email: string) => {
     try {
-      const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/reset-password` : ''
+      const redirectUrl = `${getBaseUrl()}/reset-password`
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl,

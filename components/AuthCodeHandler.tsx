@@ -27,12 +27,18 @@ export function AuthCodeHandler() {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
 
       if (error) {
-        toast.error(error.message || 'Verification failed. Please try again.');
-        router.replace(
-          `/login?error=${encodeURIComponent(
-            error.message || 'Verification failed. Please try again.',
-          )}`,
-        );
+        const message = error.message || 'Verification failed. Please try again.';
+
+        if (message.toLowerCase().includes('pkce code verifier not found in storage')) {
+          toast.error(
+            'This verification link could not be used to sign you in automatically. Please log in to continue.',
+          );
+          router.replace('/login');
+          return;
+        }
+
+        toast.error(message);
+        router.replace(`/login?error=${encodeURIComponent(message)}`);
         return;
       }
 
