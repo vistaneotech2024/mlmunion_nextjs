@@ -414,7 +414,7 @@ export function ExperienceManagement({ userId, isEditable = true }: ExperienceMa
           <Briefcase className="h-12 w-12 mx-auto mb-3 text-gray-400" />
           <p className="text-sm">No experiences added yet.</p>
           {isEditable && (
-            <p className="text-xs mt-1">Click "Add Experience" to get started.</p>
+            <p className="text-xs mt-1">Click &quot;Add Experience&quot; to get started.</p>
           )}
         </div>
       ) : (
