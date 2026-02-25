@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 /**
  * Handles Supabase `?code=` links on the client.
  * This makes sure that when a user clicks a verification link that lands on `/` (or any route),
- * we exchange the code for a session and log them in, then redirect to the dashboard.
+ * we exchange the code for a session and then redirect them to the login page.
  */
 export function AuthCodeHandler() {
   const searchParams = useSearchParams();
