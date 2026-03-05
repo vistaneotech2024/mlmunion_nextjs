@@ -467,15 +467,7 @@ Language:
       }
     }
 
-    // Reuse apiUrl for main content request (same provider)
-    apiUrl = 'https://api.openai.com/v1/chat/completions';
-    if (apiKeyConfig.provider === 'gemini') {
-      apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent`;
-    } else if (apiKeyConfig.provider === 'claude') {
-      apiUrl = 'https://api.anthropic.com/v1/messages';
-    }
-
-    // Generate the blog content
+    // Generate the blog content using the same provider-specific API URL
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
@@ -589,9 +581,9 @@ Content excerpt: ${plainTextExcerpt}`;
       if (seoResponse.ok) {
         const seoData = await seoResponse.json();
         const seoText = (seoData.choices?.[0]?.message?.content || '').trim();
-        const metaDescMatch = seoText.match(/META_DESCRIPTION:\s*(.+?)(?=\n|META_KEYWORDS:|$)/is);
-        const metaKwMatch = seoText.match(/META_KEYWORDS:\s*(.+?)(?=\n|FOCUS_KEYWORD:|$)/is);
-        const focusKwMatch = seoText.match(/FOCUS_KEYWORD:\s*(.+?)(?=\n|$)/is);
+        const metaDescMatch = seoText.match(/META_DESCRIPTION:\s*([\s\S]+?)(?=\n|META_KEYWORDS:|$)/i);
+        const metaKwMatch = seoText.match(/META_KEYWORDS:\s*([\s\S]+?)(?=\n|FOCUS_KEYWORD:|$)/i);
+        const focusKwMatch = seoText.match(/FOCUS_KEYWORD:\s*([\s\S]+?)(?=\n|$)/i);
         if (metaDescMatch?.[1]) metaDescription = metaDescMatch[1].trim().substring(0, 160);
         if (metaKwMatch?.[1]) metaKeywords = metaKwMatch[1].trim();
         if (focusKwMatch?.[1]) focusKeyword = focusKwMatch[1].trim();
