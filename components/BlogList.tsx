@@ -40,16 +40,21 @@ export function BlogList({ blogs }: { blogs: Blog[] }) {
           <article className="bg-white shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col">
             <div className="relative w-full h-40 sm:h-44 md:h-48 overflow-hidden">
               {blog.cover_image ? (
-                <img 
-                  src={blog.cover_image} 
+                <img
+                  src={blog.cover_image}
                   alt={blog.title}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                  <span className="text-gray-400 text-xl md:text-2xl font-bold">
-                    {blog.title.charAt(0).toUpperCase()}
-                  </span>
+                <div className="w-full h-full bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700 flex items-center justify-center px-3">
+                  <div className="text-center space-y-0.5">
+                    <div className="text-[9px] sm:text-[10px] font-semibold tracking-[0.2em] text-slate-300 uppercase">
+                      Blog
+                    </div>
+                    <h2 className="text-xs sm:text-sm md:text-base font-extrabold uppercase tracking-wide bg-gradient-to-r from-indigo-300 via-purple-300 to-emerald-300 text-transparent bg-clip-text leading-snug line-clamp-3">
+                      {blog.title}
+                    </h2>
+                  </div>
                 </div>
               )}
             </div>

@@ -21,6 +21,13 @@ export function AIBlogGenerator({ isOpen, onClose, onGenerated }: AIBlogGenerato
   const [generatedMetaDescription, setGeneratedMetaDescription] = React.useState('');
   const [generatedMetaKeywords, setGeneratedMetaKeywords] = React.useState('');
   const [generatedFocusKeyword, setGeneratedFocusKeyword] = React.useState('');
+  const languageOptions = [
+    'English', 'Hindi', 'Spanish', 'French', 'German', 'Portuguese', 'Indonesian',
+    'Urdu', 'Arabic', 'Bengali', 'Chinese', 'Russian', 'Japanese', 'Korean', 'Turkish', 'Italian', 'Vietnamese',
+    'Other',
+  ] as const;
+  type LanguageOption = (typeof languageOptions)[number];
+  const [language, setLanguage] = React.useState<LanguageOption>('English');
   const [loading, setLoading] = React.useState(false);
   const [step, setStep] = React.useState<'input' | 'generated'>('input');
 
@@ -37,11 +44,16 @@ export function AIBlogGenerator({ isOpen, onClose, onGenerated }: AIBlogGenerato
 
     try {
       setLoading(true);
-      console.log('Starting AI blog generation with:', { title: title.trim() || 'Auto-generate', shortDescription: shortDescription.trim() });
+      console.log('Starting AI blog generation with:', {
+        title: title.trim() || 'Auto-generate',
+        shortDescription: shortDescription.trim(),
+        language,
+      });
       
       const result = await generateBlogDescription({
         title: title.trim() || undefined,
-        shortDescription: shortDescription.trim()
+        shortDescription: shortDescription.trim(),
+        language,
       });
       
       console.log('AI blog generation successful:', result);
@@ -101,10 +113,9 @@ export function AIBlogGenerator({ isOpen, onClose, onGenerated }: AIBlogGenerato
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        {/* Background overlay */}
+        {/* Background overlay (non-clickable to prevent accidental close) */}
         <div 
           className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-          onClick={handleClose}
         />
 
         {/* Modal panel */}
@@ -139,6 +150,28 @@ export function AIBlogGenerator({ isOpen, onClose, onGenerated }: AIBlogGenerato
                   />
                   <p className="mt-1 text-xs text-gray-500">
                     Leave empty to let AI generate an SEO-optimized title (60-70 characters)
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Language
+                  </label>
+                  <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value as LanguageOption)}
+                    disabled={loading}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                  >
+                    {languageOptions.map((lang) => (
+                      <option key={lang} value={lang}>
+                        {lang === 'Other' ? 'Other (follow topic language)' : lang}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">
+                    The blog content and SEO fields will be generated in this language. The URL
+                    slug will still use an English-safe format.
                   </p>
                 </div>
 

@@ -382,12 +382,25 @@ export function NewsPageContent() {
                     <div className="flex flex-col sm:flex-row gap-2 md:gap-4 p-2 md:p-3">
                       {/* Image on the left */}
                       <div className="flex-shrink-0 w-full sm:w-32 h-32 md:w-40 md:h-40 overflow-hidden rounded">
-                        <img
-                          src={article.image_url || 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=1024'}
-                          alt={article.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
+                        {article.image_url ? (
+                          <img
+                            src={article.image_url}
+                            alt={article.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-2">
+                            <div className="text-center space-y-0.5">
+                              <div className="text-[9px] md:text-[10px] font-semibold tracking-[0.18em] text-slate-300 uppercase">
+                                News
+                              </div>
+                              <h2 className="text-xs md:text-sm font-extrabold uppercase tracking-wide bg-gradient-to-r from-indigo-300 via-purple-300 to-emerald-300 text-transparent bg-clip-text leading-snug line-clamp-3">
+                                {article.title}
+                              </h2>
+                            </div>
+                          </div>
+                        )}
+                      </div>*** End Patch```}"/>
                       
                       {/* Content on the right */}
                       <div className="flex-1 min-w-0">
@@ -455,11 +468,24 @@ export function NewsPageContent() {
               <Link href={`/news/${article.slug || article.id}`} className="block">
                     {/* Image with Category Tag Overlay */}
                 <div className="relative h-40 sm:h-44 md:h-48 overflow-hidden">
-                  <img
-                    src={article.image_url || 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=1024'}
-                    alt={article.title}
-                        className="w-full h-full object-cover"
-                      />
+                  {article.image_url ? (
+                    <img
+                      src={article.image_url}
+                      alt={article.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-r from-indigo-50 via-sky-50 to-emerald-50 flex items-center justify-center px-3">
+                      <div className="text-center space-y-0.5">
+                        <div className="text-[9px] md:text-[10px] font-semibold tracking-[0.18em] text-slate-500 uppercase">
+                          Headline
+                        </div>
+                        <h2 className="text-xs md:text-sm font-extrabold uppercase tracking-wide bg-gradient-to-r from-indigo-700 via-purple-700 to-emerald-700 text-transparent bg-clip-text leading-snug line-clamp-3">
+                          {article.title}
+                        </h2>
+                      </div>
+                    </div>
+                  )}
                       {/* Category Tag - Blue Pill at Top Left */}
                       <div className="absolute top-2 md:top-3 left-2 md:left-3">
                         <span className="bg-blue-600 text-white text-[10px] md:text-xs font-semibold px-2 md:px-3 py-0.5 md:py-1 rounded-full uppercase">

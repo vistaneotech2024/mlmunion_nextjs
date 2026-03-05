@@ -19,8 +19,8 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   const nextParam = requestUrl.searchParams.get('next')
-  // Default to dashboard when no explicit "next" is provided
-  const next = nextParam && nextParam.startsWith('/') ? nextParam.slice(1) : nextParam || 'dashboard'
+  // Default to home page when no explicit "next" is provided
+  const next = nextParam && nextParam.startsWith('/') ? nextParam.slice(1) : nextParam || ''
 
   if (code) {
     try {
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
         )
       }
 
-      const redirectPath = next ? `/${next}` : '/dashboard'
+      const redirectPath = next ? `/${next}` : '/'
       return NextResponse.redirect(new URL(redirectPath, requestUrl.origin))
     } catch (err) {
       console.error('Auth callback error:', err)

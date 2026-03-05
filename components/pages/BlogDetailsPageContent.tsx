@@ -37,6 +37,21 @@ interface Blog {
   focus_keyword?: string | null;
 }
 
+function BlogCoverFallback({ title }: { title: string }) {
+  return (
+    <div className="relative w-full h-48 sm:h-64 md:h-96 mb-4 md:mb-6 overflow-hidden rounded-lg bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center px-4 sm:px-6">
+      <div className="text-center space-y-1 sm:space-y-2">
+        <div className="text-[10px] sm:text-xs md:text-sm font-semibold tracking-[0.25em] text-slate-300 uppercase">
+          Blog Spotlight
+        </div>
+        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold uppercase tracking-tight md:tracking-[0.06em] bg-gradient-to-r from-indigo-300 via-purple-300 to-emerald-300 text-transparent bg-clip-text leading-tight drop-shadow-lg line-clamp-3">
+          {title}
+        </h1>
+      </div>
+    </div>
+  );
+}
+
 type Props = {
   slug: string;
 };
@@ -371,10 +386,12 @@ export function BlogDetailsPageContent({ slug }: Props) {
                   </div>
                 </div>
 
-                {blog.cover_image && (
+                {blog.cover_image ? (
                   <div className="relative w-full h-48 sm:h-64 md:h-96 mb-4 md:mb-6 overflow-hidden rounded-lg">
                     <img src={blog.cover_image} alt={blog.title} className="w-full h-full object-cover" />
                   </div>
+                ) : (
+                  <BlogCoverFallback title={blog.title} />
                 )}
 
                 <div

@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { BadgesDisplay } from '@/components/BadgesDisplay';
 import { VerificationBadge } from '@/components/VerificationBadge';
+import { ExperienceManagement } from '@/components/ExperienceManagement';
 import toast from 'react-hot-toast';
 
 interface DirectSeller {
@@ -794,27 +795,42 @@ export function DirectSellerDetailPageContent({ username }: { username: string }
                 ) : (
                   <>
                     {activeTab === 'about' && (
-                      <div className="space-y-3 md:space-y-4 lg:space-y-5">
+                      <div className="space-y-4 md:space-y-5 lg:space-y-6">
                         <div>
-                          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-3">About</h2>
-                          <p className="text-sm sm:text-base leading-relaxed text-gray-700">{seller.seller_bio || 'No bio available yet.'}</p>
+                          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2 md:mb-3">
+                            About
+                          </h2>
+                          <p className="text-sm sm:text-base leading-relaxed text-gray-700">
+                            {seller.seller_bio || 'No bio available yet.'}
+                          </p>
                         </div>
+
                         {seller.specialties?.length ? (
                           <div>
-                            <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-2 md:mb-3">Specialties</h3>
+                            <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-2 md:mb-3">
+                              Specialties
+                            </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4">
                               {seller.specialties.map((specialty, index) => (
                                 <div key={index} className="flex items-start">
                                   <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
                                   <div>
-                                    <h4 className="font-semibold text-gray-900 text-sm sm:text-base">{specialty}</h4>
-                                    <p className="text-gray-600 text-xs sm:text-sm mt-1">{getSpecialtyDescription(specialty)}</p>
+                                    <h4 className="font-semibold text-gray-900 text-sm sm:text-base">
+                                      {specialty}
+                                    </h4>
+                                    <p className="text-gray-600 text-xs sm:text-sm mt-1">
+                                      {getSpecialtyDescription(specialty)}
+                                    </p>
                                   </div>
                                 </div>
                               ))}
                             </div>
                           </div>
                         ) : null}
+
+                        <div className="pt-2 border-t border-gray-100">
+                          <ExperienceManagement userId={seller.id} isEditable={false} />
+                        </div>
                       </div>
                     )}
                     {activeTab === 'companies' && (

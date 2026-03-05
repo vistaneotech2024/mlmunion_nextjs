@@ -51,6 +51,23 @@ interface CategoryNews {
 
 type Props = { slug: string };
 
+function NewsCoverFallback({ title }: { title: string }) {
+  return (
+    <div className="mb-4 md:mb-6">
+      <div className="w-full h-48 sm:h-56 md:h-72 overflow-hidden rounded-lg bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center px-4 sm:px-6">
+        <div className="text-center space-y-1 sm:space-y-2">
+          <div className="text-[10px] sm:text-xs md:text-sm font-semibold tracking-[0.25em] text-slate-300 uppercase">
+            Top Story
+          </div>
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold uppercase tracking-tight md:tracking-[0.06em] bg-gradient-to-r from-indigo-300 via-purple-300 to-emerald-300 text-transparent bg-clip-text leading-tight drop-shadow-lg line-clamp-3">
+            {title}
+          </h1>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function formatDate(dateString: string) {
   const date = new Date(dateString);
   const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -375,14 +392,18 @@ export function NewsDetailsPageContent({ slug }: Props) {
               </Link>
 
               <article itemScope itemType="https://schema.org/NewsArticle" className="bg-white overflow-hidden">
-                <div className="mb-4 md:mb-6">
-                  <img
-                    src={article.image_url || 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=1200'}
-                    alt={article.title}
-                    className="w-full h-auto object-cover rounded-lg"
-                    itemProp="image"
-                  />
-                </div>
+                {article.image_url ? (
+                  <div className="mb-4 md:mb-6">
+                    <img
+                      src={article.image_url}
+                      alt={article.title}
+                      className="w-full h-auto object-cover rounded-lg"
+                      itemProp="image"
+                    />
+                  </div>
+                ) : (
+                  <NewsCoverFallback title={article.title} />
+                )}
 
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4" itemProp="headline">
                   {article.title}
@@ -455,11 +476,21 @@ export function NewsDetailsPageContent({ slug }: Props) {
                         {relatedArticle.categoryName && (
                           <div className="text-xs font-semibold text-blue-600 mb-1.5 md:mb-2">{relatedArticle.categoryName}</div>
                         )}
-                        {relatedArticle.image_url && (
-                          <div className="w-full h-24 md:h-32 mb-2 overflow-hidden rounded-md">
-                            <img src={relatedArticle.image_url} alt={relatedArticle.title} className="w-full h-full object-cover" />
-                          </div>
-                        )}
+                        <div className="w-full h-24 md:h-32 mb-2 overflow-hidden rounded-md">
+                          {relatedArticle.image_url ? (
+                            <img
+                              src={relatedArticle.image_url}
+                              alt={relatedArticle.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-2">
+                              <h3 className="text-[11px] md:text-sm font-bold uppercase tracking-wide bg-gradient-to-r from-indigo-300 via-purple-300 to-emerald-300 text-transparent bg-clip-text text-center leading-snug line-clamp-2">
+                                {relatedArticle.title}
+                              </h3>
+                            </div>
+                          )}
+                        </div>
                         <h3 className="text-xs md:text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors mb-1">{relatedArticle.title}</h3>
                         <p className="text-xs text-gray-500">{formatDate(relatedArticle.created_at)}</p>
                       </Link>
@@ -487,11 +518,19 @@ export function NewsDetailsPageContent({ slug }: Props) {
                           className="group bg-white rounded-lg overflow-hidden hover:shadow-md transition-all duration-300 border border-gray-200"
                         >
                           <div className="relative w-full h-40 md:h-48 overflow-hidden bg-gray-200">
-                            <img
-                              src={newsItem.image_url || 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800'}
-                              alt={newsItem.title}
-                              className="w-full h-full object-cover"
-                            />
+                            {newsItem.image_url ? (
+                              <img
+                                src={newsItem.image_url}
+                                alt={newsItem.title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-3">
+                                <h4 className="text-xs md:text-sm font-bold uppercase tracking-wide bg-gradient-to-r from-indigo-300 via-purple-300 to-emerald-300 text-transparent bg-clip-text text-center leading-snug line-clamp-2">
+                                  {newsItem.title}
+                                </h4>
+                              </div>
+                            )}
                           </div>
                           <div className="p-3 md:p-4 bg-white">
                             <div className="text-xs md:text-sm text-gray-600 mb-1.5 md:mb-2">{formatDate(newsItem.created_at)}</div>

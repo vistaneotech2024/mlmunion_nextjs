@@ -10,6 +10,7 @@ import { ImageUpload } from './ImageUpload';
 import { AIBlogGenerator } from './AIBlogGenerator';
 import { handleSupabaseError } from '@/lib/supabase';
 import { triggerSitemapRegeneration } from '../lib/sitemap';
+import { generateEnglishSlugFromTitle } from '../lib/openai';
 import { showPointsNotification } from './PointsNotification';
 import toast from 'react-hot-toast';
 import { useCachedBlogCategories } from '../hooks/useCachedBlogCategories';
@@ -48,7 +49,7 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess, initialData }: Cre
   const [loadingCompanies, setLoadingCompanies] = React.useState(true);
   const { register, handleSubmit, setValue, watch, formState: { errors }, reset } = useForm<BlogFormData>({
     defaultValues: {
-      published: false,
+      published: true,
       content: '',
       category: '',
       cover_image: '',
@@ -112,13 +113,39 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess, initialData }: Cre
 
   // Helper function to generate slug from title
   const generateSlug = (title: string): string => {
-    let slug = title.toLowerCase()
+    // Normalize to remove accents and convert to a safe ASCII/English-friendly slug
+    const normalized = title
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // remove diacritics
+      .replace(/[^\x00-\x7F]/g, ' '); // replace non-ASCII with space
+
+    let slug = normalized
+      .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
     slug = slug.replace(/^-+|-+$/g, '');
+    if (!slug) {
+      return 'blog-post';
+    }
     return slug;
+  };
+
+  // Generate final slug; if the basic slug is just the generic fallback,
+  // try to create a meaningful English slug based on the title meaning.
+  const generateFinalSlug = async (title: string, metaDescription?: string): Promise<string> => {
+    const basicSlug = generateSlug(title);
+    if (basicSlug !== 'blog-post') {
+      return basicSlug;
+    }
+    try {
+      const aiSlug = await generateEnglishSlugFromTitle(title, metaDescription);
+      return aiSlug || basicSlug;
+    } catch (error) {
+      console.error('Error generating AI-based slug:', error);
+      return basicSlug;
+    }
   };
 
   // Helper function to award points for blog post creation
@@ -175,8 +202,8 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess, initialData }: Cre
     try {
       setSubmitting(true);
 
-      // Generate slug from title
-      const slug = generateSlug(data.title);
+      // Generate slug from title; if non-English, use AI to create an English slug
+      const slug = await generateFinalSlug(data.title, data.meta_description);
 
       // Prepare the data object with only valid fields
       const blogData = {
@@ -377,15 +404,18 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess, initialData }: Cre
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Meta Description</label>
-                  <p className="text-xs text-gray-500 mb-2">A brief description for search results (recommended: 150-160 characters)</p>
+                  <p className="text-xs text-gray-500 mb-2">
+                    A brief description for search results. Keep it concise and relevant.
+                  </p>
                   <textarea
-                    {...register("meta_description")}
+                    {...register('meta_description')}
                     rows={3}
-                    maxLength={160}
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="Enter meta description for search results..."
                   />
-                  <p className="mt-1 text-xs text-gray-400">{watch('meta_description')?.length || 0}/160 characters</p>
+                  <p className="mt-1 text-xs text-gray-400">
+                    {watch('meta_description')?.length || 0} characters
+                  </p>
                 </div>
 
                 <div>

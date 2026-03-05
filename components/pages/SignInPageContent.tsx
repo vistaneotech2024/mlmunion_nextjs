@@ -47,7 +47,8 @@ export function SignInPageContent() {
           return;
         }
       }
-      router.replace('/dashboard');
+      // Default after successful sign-in: go to home page
+      router.replace('/');
     } catch (error: any) {
       toast.error(error?.message || 'Sign in failed');
     }

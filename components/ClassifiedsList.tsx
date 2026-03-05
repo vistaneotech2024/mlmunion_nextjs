@@ -333,10 +333,15 @@ export function ClassifiedsList({
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-indigo-100 to-blue-100 flex items-center justify-center">
-                      <span className="text-indigo-500 text-xl font-bold">
-                        {classified.title.charAt(0).toUpperCase()}
-                      </span>
+                    <div className="w-full h-full bg-gradient-to-r from-indigo-50 via-sky-50 to-emerald-50 flex items-center justify-center px-2">
+                      <div className="text-center space-y-0.5">
+                        <div className="text-[9px] sm:text-[10px] font-semibold tracking-[0.18em] text-slate-500 uppercase">
+                          Classified
+                        </div>
+                        <h3 className="text-xs sm:text-sm font-extrabold uppercase tracking-wide bg-gradient-to-r from-indigo-700 via-purple-700 to-emerald-700 text-transparent bg-clip-text leading-snug line-clamp-3">
+                          {classified.title}
+                        </h3>
+                      </div>
                     </div>
                   )}
                   {classified.is_premium && (

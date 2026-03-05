@@ -71,6 +71,7 @@ async function getActiveApiKey(
 export interface GenerateDescriptionParams {
   title?: string;
   shortDescription: string;
+  language?: string;
 }
 
 export interface GeneratedDescription {
@@ -350,6 +351,8 @@ export async function generateBlogDescription(
   provider: 'gpt' | 'gemini' | 'claude' | 'other' = 'gpt',
   model?: string
 ): Promise<GeneratedDescription> {
+  const targetLanguage = params.language && params.language !== 'Other' ? params.language : 'English';
+
   // Fetch active API key from database (use default model if not provided)
   const defaultModel = model || (provider === 'gpt' ? 'gpt-4' : provider === 'gemini' ? 'gemini-pro' : 'claude-3-opus');
   const apiKeyConfig = await getActiveApiKey(provider, defaultModel);
@@ -372,6 +375,7 @@ Rules:
 - High click intent, non-generic phrasing
 - Natural keyword use, no repetition
 - 100% plagiarism-free
+ - Write the title in ${targetLanguage} only.
 
 Return only the title text.`
     : `Create ONE original, SEO-optimized blog title (60–70 characters) for a network marketing / MLM blog post.
@@ -382,6 +386,7 @@ Rules:
 - High click intent, non-generic phrasing
 - Natural keyword use, no repetition
 - 100% plagiarism-free
+ - Write the title in ${targetLanguage} only.
 
 Return only the title text.`;
 
@@ -409,58 +414,14 @@ HTML:
 - Use <h2> for main section headings (2-3 headings)
 - Use <strong> 2–3 times per paragraph for emphasis
 - Return ONLY valid HTML
+
+Language:
+- Write the entire response in ${targetLanguage} only, regardless of the input language.
 `;
 
   try {
-    // First, generate the title if not provided
+    // Always generate the SEO title via API so it is in the selected language
     let generatedTitle = params.title || '';
-    
-    if (!params.title) {
-      // Determine API endpoint based on provider
-      let apiUrl = 'https://api.openai.com/v1/chat/completions';
-      if (apiKeyConfig.provider === 'gemini') {
-        apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent`;
-      } else if (apiKeyConfig.provider === 'claude') {
-        apiUrl = 'https://api.anthropic.com/v1/messages';
-      }
-
-      // For now, we support GPT. Gemini and Claude support can be added later
-      if (apiKeyConfig.provider !== 'gpt') {
-        throw new Error(`AI provider "${apiKeyConfig.provider}" is not yet supported. Please use GPT provider.`);
-      }
-
-      const titleResponse = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`
-        },
-        body: JSON.stringify({
-          model: activeModel,
-          messages: [
-            {
-              role: 'system',
-              content: 'You are an SEO expert specializing in creating optimized blog titles for network marketing content. Generate concise, keyword-rich titles (60-70 characters) that are compelling and SEO-friendly.'
-            },
-            {
-              role: 'user',
-              content: titlePrompt
-            }
-          ],
-          temperature: 0.8,
-          max_tokens: 100
-        })
-      });
-
-      if (titleResponse.ok) {
-        const titleData = await titleResponse.json();
-        generatedTitle = titleData.choices[0]?.message?.content?.trim() || params.shortDescription.substring(0, 70);
-        // Remove quotes if present
-        generatedTitle = generatedTitle.replace(/^["']|["']$/g, '');
-      }
-    }
-
-    // Determine API endpoint based on provider
     let apiUrl = 'https://api.openai.com/v1/chat/completions';
     if (apiKeyConfig.provider === 'gemini') {
       apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent`;
@@ -468,9 +429,50 @@ HTML:
       apiUrl = 'https://api.anthropic.com/v1/messages';
     }
 
-    // For now, we support GPT. Gemini and Claude support can be added later
     if (apiKeyConfig.provider !== 'gpt') {
       throw new Error(`AI provider "${apiKeyConfig.provider}" is not yet supported. Please use GPT provider.`);
+    }
+
+    const titleResponse = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_KEY}`
+      },
+      body: JSON.stringify({
+        model: activeModel,
+        messages: [
+          {
+            role: 'system',
+            content: `You are an SEO expert specializing in creating optimized blog titles for network marketing content. Generate concise, keyword-rich titles (60-70 characters) that are compelling and SEO-friendly. You MUST write the title only in ${targetLanguage}. Never respond in another language.`
+          },
+          {
+            role: 'user',
+            content: titlePrompt
+          }
+        ],
+        temperature: 0.8,
+        max_tokens: 100
+      })
+    });
+
+    if (titleResponse.ok) {
+      const titleData = await titleResponse.json();
+      const apiTitle = titleData.choices[0]?.message?.content?.trim() || '';
+      if (apiTitle) {
+        generatedTitle = apiTitle.replace(/^["']|["']$/g, '');
+      }
+      if (!generatedTitle) {
+        generatedTitle = params.title || params.shortDescription.substring(0, 70);
+      }
+    }
+
+    // Reuse apiUrl for main content request (same provider)
+    apiUrl = 'https://api.openai.com/v1/chat/completions';
+    if (apiKeyConfig.provider === 'gemini') {
+      apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent`;
+    } else if (apiKeyConfig.provider === 'claude') {
+      apiUrl = 'https://api.anthropic.com/v1/messages';
     }
 
     // Generate the blog content
@@ -485,7 +487,7 @@ HTML:
         messages: [
           {
             role: 'system',
-            content: 'You are a professional SEO blog writer specializing in Direct Selling / MLM / Network Marketing content. Write original, engaging, SEO-optimized blog posts with proper HTML formatting. Focus on providing value, insights, and actionable advice.'
+        content: `You are a professional SEO blog writer specializing in Direct Selling / MLM / Network Marketing content. Write original, engaging, SEO-optimized blog posts with proper HTML formatting. Focus on providing value, insights, and actionable advice. Always respond in ${targetLanguage} only, regardless of the input language.`
           },
           {
             role: 'user',
@@ -541,21 +543,62 @@ HTML:
     // Extract paragraphs for SEO analysis
     const paragraphMatches = generatedText.match(/<p>([^<]+)<\/p>/g) || [];
     const paragraphs = paragraphMatches.map((p: string) => p.replace(/<\/?p>/g, '').trim());
+    const plainTextExcerpt = (paragraphs.join(' ')).replace(/\s+/g, ' ').trim().substring(0, 600);
 
-    // Extract SEO keywords (simple extraction - can be enhanced)
+    // Fallback: simple keyword extraction if AI SEO call fails
     const textContent = generatedText.replace(/<[^>]*>/g, ' ').toLowerCase();
     const commonWords = (textContent.match(/\b(network marketing|mlm|direct selling|opportunity|income|success|business|growth|strategy|earn|profit)\b/gi) || []) as string[];
     const seoKeywords: string[] = [...new Set(commonWords.map((w: string) => w.toLowerCase()))].slice(0, 10);
-
-    // Generate meta description
     const firstParagraph = paragraphs[0] || '';
-    const metaDescription = firstParagraph.substring(0, 155).trim() + (firstParagraph.length > 155 ? '...' : '');
+    const fallbackMetaDescription = firstParagraph.substring(0, 155).trim() + (firstParagraph.length > 155 ? '...' : '');
+    const fallbackMetaKeywords = seoKeywords.slice(0, 5).join(', ');
+    const fallbackFocusKeyword = seoKeywords[0] || 'network marketing';
 
-    // Generate meta keywords
-    const metaKeywords = seoKeywords.slice(0, 5).join(', ');
+    // Generate meta description, meta keywords, and focus keyword via AI (content-specific, in selected language)
+    let metaDescription = fallbackMetaDescription;
+    let metaKeywords = fallbackMetaKeywords;
+    let focusKeyword = fallbackFocusKeyword;
+    try {
+      const seoPrompt = `You are an SEO expert. Output exactly three lines in this format (no other text):
+META_DESCRIPTION: [One compelling meta description, max 155 characters, in ${targetLanguage} only]
+META_KEYWORDS: [5-8 comma-separated SEO keywords, in ${targetLanguage}]
+FOCUS_KEYWORD: [One main keyword or short phrase for this post, in ${targetLanguage}]
 
-    // Generate focus keyword (first main keyword)
-    const focusKeyword = seoKeywords[0] || 'network marketing';
+Blog title: ${generatedTitle}
+Content excerpt: ${plainTextExcerpt}`;
+
+      const seoResponse = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_KEY}`
+        },
+        body: JSON.stringify({
+          model: activeModel,
+          messages: [
+            {
+              role: 'system',
+              content: `You output only META_DESCRIPTION, META_KEYWORDS, and FOCUS_KEYWORD in the requested language. No preamble. Use the exact labels.`
+            },
+            { role: 'user', content: seoPrompt }
+          ],
+          temperature: 0.5,
+          max_tokens: 300
+        })
+      });
+      if (seoResponse.ok) {
+        const seoData = await seoResponse.json();
+        const seoText = (seoData.choices?.[0]?.message?.content || '').trim();
+        const metaDescMatch = seoText.match(/META_DESCRIPTION:\s*(.+?)(?=\n|META_KEYWORDS:|$)/is);
+        const metaKwMatch = seoText.match(/META_KEYWORDS:\s*(.+?)(?=\n|FOCUS_KEYWORD:|$)/is);
+        const focusKwMatch = seoText.match(/FOCUS_KEYWORD:\s*(.+?)(?=\n|$)/is);
+        if (metaDescMatch?.[1]) metaDescription = metaDescMatch[1].trim().substring(0, 160);
+        if (metaKwMatch?.[1]) metaKeywords = metaKwMatch[1].trim();
+        if (focusKwMatch?.[1]) focusKeyword = focusKwMatch[1].trim();
+      }
+    } catch (_) {
+      // use fallbacks already set
+    }
 
     return {
       title: generatedTitle,
@@ -582,5 +625,104 @@ HTML:
     
     throw new Error(error.message || 'Failed to generate blog content. Please check the browser console for details.');
   }
+}
+
+/**
+ * Generate an English, URL-safe slug based on a (possibly non-English) title.
+ * Used when the normal ASCII slug generator cannot create a meaningful slug.
+ */
+export async function generateEnglishSlugFromTitle(
+  title: string,
+  shortDescription?: string
+): Promise<string> {
+  const provider: 'gpt' = 'gpt';
+  const defaultModel = 'gpt-4';
+  const apiKeyConfig = await getActiveApiKey(provider, defaultModel);
+  const { api_key: API_KEY, model: activeModel } = apiKeyConfig;
+
+  if (!API_KEY) {
+    throw new Error('No active API key configured. Please configure an API key in Admin Settings > API Settings.');
+  }
+
+  let apiUrl = 'https://api.openai.com/v1/chat/completions';
+  if (apiKeyConfig.provider === 'gemini') {
+    apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent`;
+  } else if (apiKeyConfig.provider === 'claude') {
+    apiUrl = 'https://api.anthropic.com/v1/messages';
+  }
+
+  if (apiKeyConfig.provider !== 'gpt') {
+    throw new Error(`AI provider "${apiKeyConfig.provider}" is not yet supported. Please use GPT provider.`);
+  }
+
+  const systemPrompt =
+    'You are an expert at creating detailed, SEO-friendly URL slugs in clear, natural English. You always respond with only the slug text.';
+
+  const userPrompt = `Create an English URL slug for this blog post that closely matches the full meaning of the original title (like a natural English translation, not a summary).
+
+Title: ${title}
+${shortDescription ? `Short description: ${shortDescription}\n` : ''}
+
+Rules:
+- Use only lowercase English letters, numbers, and hyphens
+- Use enough meaningful English words to fully capture the title meaning (typically 6–14 words)
+- Keep word order natural and similar to the original meaning
+- Avoid filler words; keep it focused but detailed
+- No accents, emojis, or special characters
+- Do NOT include the protocol or domain, only the slug segment
+
+Return only the slug text.`;
+
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${API_KEY}`
+    },
+    body: JSON.stringify({
+      model: activeModel,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.4,
+      max_tokens: 60
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    console.error('OpenAI slug generation error:', {
+      status: response.status,
+      statusText: response.statusText,
+      errorData
+    });
+    throw new Error(errorData.error?.message || 'Failed to generate slug from AI.');
+  }
+
+  const data = await response.json();
+  let rawSlug: string = data.choices?.[0]?.message?.content || '';
+  rawSlug = rawSlug.trim().replace(/^["']|["']$/g, '');
+
+  // Normalize to a safe ASCII/English-friendly slug
+  const normalized = rawSlug
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\x00-\x7F]/g, ' ');
+
+  let slug = normalized
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+
+  slug = slug.replace(/^-+|-+$/g, '');
+
+  if (!slug) {
+    throw new Error('AI did not return a valid slug.');
+  }
+
+  return slug;
 }
 

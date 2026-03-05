@@ -30,10 +30,9 @@ export function AuthCodeHandler() {
         const message = error.message || 'Verification failed. Please try again.';
 
         if (message.toLowerCase().includes('pkce code verifier not found in storage')) {
-          toast.error(
-            'This verification link could not be used to sign you in automatically. Please log in to continue.',
-          );
-          router.replace('/login');
+          // If the user is already logged in (or the PKCE verifier is missing),
+          // silently send them to the home page instead of showing an error toast.
+          router.replace('/');
           return;
         }
 
@@ -43,7 +42,7 @@ export function AuthCodeHandler() {
       }
 
       toast.success('Email verified. You are now signed in.');
-      router.replace('/dashboard');
+      router.replace('/');
     })();
   }, [router, searchParams]);
 

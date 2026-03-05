@@ -311,6 +311,29 @@ export function ClassifiedDetailsPageContent({ slug }: Props) {
       ? profileImage
       : supabase.storage.from('avatars').getPublicUrl(profileImage).data.publicUrl;
 
+  const ClassifiedCoverFallback = ({ title, isPremium }: { title: string; isPremium?: boolean }) => (
+    <div className="relative h-48 sm:h-64 md:h-96 overflow-hidden">
+      <div className="w-full h-full bg-gradient-to-r from-indigo-50 via-sky-50 to-emerald-50 flex items-center justify-center px-4 sm:px-6">
+        <div className="text-center space-y-1 sm:space-y-2">
+          <div className="text-[10px] sm:text-xs md:text-sm font-semibold tracking-[0.25em] text-slate-500 uppercase">
+            Featured Classified
+          </div>
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold uppercase tracking-tight md:tracking-[0.06em] bg-gradient-to-r from-indigo-700 via-purple-700 to-emerald-700 text-transparent bg-clip-text leading-tight drop-shadow-sm line-clamp-3">
+            {title}
+          </h1>
+        </div>
+      </div>
+      {isPremium && (
+        <div className="absolute top-2 md:top-4 right-2 md:right-4 z-10">
+          <span className="bg-yellow-500 text-white text-[10px] md:text-xs font-bold px-2 md:px-3 py-1 md:py-1.5 rounded-full uppercase shadow-lg flex items-center gap-1 md:gap-1.5">
+            <span>⭐</span>
+            Premium
+          </span>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <>
       <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white pb-6 md:pb-12">
@@ -326,7 +349,7 @@ export function ClassifiedDetailsPageContent({ slug }: Props) {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
             <div className="lg:col-span-2">
               <article className="bg-white shadow-xl overflow-hidden border border-indigo-50">
-                {classified.image_url && (
+                {classified.image_url ? (
                   <div className="relative h-48 sm:h-64 md:h-96 overflow-hidden">
                     <img src={classified.image_url} alt={classified.title} className="w-full h-full object-cover" />
                     {classified.is_premium === true && (
@@ -338,6 +361,8 @@ export function ClassifiedDetailsPageContent({ slug }: Props) {
                       </div>
                     )}
                   </div>
+                ) : (
+                  <ClassifiedCoverFallback title={classified.title} isPremium={classified.is_premium === true} />
                 )}
                 <div className="p-3 md:p-4 lg:p-6 xl:p-8 relative">
                   {classified.is_premium === true && !classified.image_url && (

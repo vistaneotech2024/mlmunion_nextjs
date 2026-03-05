@@ -94,6 +94,8 @@ export function AdminCompaniesPageContent() {
   const [editReviewText, setEditReviewText] = React.useState('');
   const [editReviewRating, setEditReviewRating] = React.useState(0);
   const [updatingReview, setUpdatingReview] = React.useState(false);
+  const [automationLoading, setAutomationLoading] = React.useState(false);
+  const [automationStatus, setAutomationStatus] = React.useState<string | null>(null);
   
   // Form state
   const [formData, setFormData] = React.useState({
@@ -336,6 +338,55 @@ export function AdminCompaniesPageContent() {
       setLoading(false);
     }
   }
+
+  const runResearchAutomation = async () => {
+    if (automationLoading) return;
+    try {
+      setAutomationLoading(true);
+      setAutomationStatus(null);
+
+      const res = await fetch('/api/admin/company-research', {
+        method: 'POST',
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to run research automation');
+      }
+
+      const data = await res.json() as {
+        processedCount: number;
+        remainingPending: number;
+        updatedCompanies: { id: string; name: string; status: string }[];
+        errors: { id: string; name: string; message: string }[];
+      };
+
+      const processed = data.processedCount || 0;
+      const remaining = data.remainingPending || 0;
+
+      setAutomationStatus(
+        `Processed ${processed} compan${processed === 1 ? 'y' : 'ies'} in this batch. Pending companies remaining: ${remaining}.`
+      );
+
+      if (processed > 0) {
+        toast.success(`Successfully enriched ${processed} compan${processed === 1 ? 'y' : 'ies'}.`);
+      } else if (data.errors && data.errors.length > 0) {
+        toast.error(`Research failed for ${data.errors.length} compan${data.errors.length === 1 ? 'y' : 'ies'}. Check console or DB 'research_error' for details.`);
+      } else if (!remaining) {
+        toast('No pending companies to research.', { icon: 'ℹ️' });
+      } else {
+        toast('No companies were processed in this batch.', { icon: 'ℹ️' });
+      }
+
+      // Reload companies list to reflect updated data
+      await loadCompanies();
+    } catch (error: any) {
+      console.error('Error running research automation:', error);
+      toast.error(error?.message || 'Failed to run research automation');
+    } finally {
+      setAutomationLoading(false);
+    }
+  };
 
   async function loadReviews(companyId: string) {
     try {
@@ -747,15 +798,34 @@ export function AdminCompaniesPageContent() {
 
         {/* Management Section */}
         <div className="space-y-4">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-0">
-          <h2 className="text-2xl md:text-xl font-bold text-gray-900">Manage Companies</h2>
-            <button
-              onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center px-5 py-3 md:px-3 md:py-1.5 border border-transparent rounded-md shadow-sm text-base md:text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-            >
-            <Plus className="h-6 w-6 md:h-4 md:w-4 mr-2 md:mr-1.5" />
-              Create Company
-            </button>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-0">
+            <h2 className="text-2xl md:text-xl font-bold text-gray-900">Manage Companies</h2>
+            <div className="flex flex-col md:flex-row gap-2">
+              <button
+                onClick={runResearchAutomation}
+                disabled={automationLoading}
+                className="inline-flex items-center px-5 py-3 md:px-3 md:py-1.5 border border-transparent rounded-md shadow-sm text-base md:text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60"
+              >
+                {automationLoading ? (
+                  <>
+                    <span className="mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Running (5 companies)...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-6 w-6 md:h-4 md:w-4 mr-2 md:mr-1.5" />
+                    Run Research (5 companies)
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="inline-flex items-center px-5 py-3 md:px-3 md:py-1.5 border border-transparent rounded-md shadow-sm text-base md:text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+              >
+                <Plus className="h-6 w-6 md:h-4 md:w-4 mr-2 md:mr-1.5" />
+                Create Company
+              </button>
+            </div>
           </div>
 
           {/* Filters */}
@@ -837,6 +907,13 @@ export function AdminCompaniesPageContent() {
               <option value="alphabetical">Sort Alphabetically</option>
             </select>
           </div>
+
+          {/* Automation status */}
+          {automationStatus && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-md p-3 text-sm text-emerald-800">
+              {automationStatus}
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (
