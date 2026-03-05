@@ -400,7 +400,7 @@ export function NewsPageContent() {
                             </div>
                           </div>
                         )}
-                      </div>*** End Patch```}"/>
+                      </div>
                       
                       {/* Content on the right */}
                       <div className="flex-1 min-w-0">
