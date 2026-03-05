@@ -464,7 +464,7 @@ export function NewsDetailsPageContent({ slug }: Props) {
 
             <div className="lg:col-span-1">
               <div className="lg:sticky lg:top-4">
-                <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4">Latest News Article</h2>
+                <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4">Latest News &amp; Updates</h2>
                 {relatedArticles.length > 0 ? (
                   <div className="max-h-[400px] md:max-h-[600px] overflow-y-auto pr-2 space-y-3 md:space-y-4 latest-news-scrollbar" style={{ scrollbarWidth: 'thin', scrollbarColor: '#cbd5e1 #f1f5f9' }}>
                     {relatedArticles.map((relatedArticle) => (
