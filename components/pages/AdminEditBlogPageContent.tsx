@@ -12,6 +12,7 @@ import { ImageUpload } from '@/components/ImageUpload';
 import { supabase, handleSupabaseError } from '@/lib/supabase';
 import { triggerSitemapRegeneration } from '@/lib/sitemap';
 import { useAuth } from '@/contexts/AuthContext';
+import { generateEnglishSlugFromTitle } from '@/lib/openai';
 
 interface BlogCategory {
   id: string;
@@ -32,14 +33,29 @@ interface BlogFormData {
 }
 
 function generateSlug(title: string): string {
-  let slug = title
+  const normalized = title
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\x00-\x7F]/g, ' ');
+
+  let slug = normalized
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .trim();
   slug = slug.replace(/^-+|-+$/g, '');
-  return slug;
+  return slug || 'blog-post';
+}
+
+async function generateFinalSlug(title: string, metaDescription?: string): Promise<string> {
+  try {
+    const aiSlug = await generateEnglishSlugFromTitle(title, metaDescription);
+    if (aiSlug) return aiSlug;
+  } catch (error) {
+    console.error('Error generating AI-based slug (admin edit):', error);
+  }
+  return generateSlug(title);
 }
 
 export function AdminEditBlogPageContent() {
@@ -222,21 +238,21 @@ export function AdminEditBlogPageContent() {
         updated_at: new Date().toISOString(),
       };
 
-      // If title changed, regenerate slug (ensure unique)
+      // If title changed, regenerate slug (ensure unique), preferring an AI English slug
       if (trimmedTitle !== originalTitle) {
-        let newSlug = generateSlug(trimmedTitle);
+        let baseSlug = await generateFinalSlug(trimmedTitle, data.meta_description);
 
         const { data: existingBlog, error: slugError } = await supabase
           .from('blog_posts')
           .select('id')
-          .eq('slug', newSlug)
+          .eq('slug', baseSlug)
           .neq('id', blogId)
           .maybeSingle();
         if (slugError) throw slugError;
 
         if (existingBlog) {
           let counter = 1;
-          let uniqueSlug = `${newSlug}-${counter}`;
+          let uniqueSlug = `${baseSlug}-${counter}`;
           while (true) {
             const { data: checkBlog, error: checkError } = await supabase
               .from('blog_posts')
@@ -247,12 +263,12 @@ export function AdminEditBlogPageContent() {
             if (checkError) throw checkError;
             if (!checkBlog) break;
             counter++;
-            uniqueSlug = `${newSlug}-${counter}`;
+            uniqueSlug = `${baseSlug}-${counter}`;
           }
-          newSlug = uniqueSlug;
+          baseSlug = uniqueSlug;
         }
 
-        updateData.slug = newSlug;
+        updateData.slug = baseSlug;
       }
 
       const { error } = await supabase.from('blog_posts').update(updateData).eq('id', blogId);
@@ -364,6 +380,12 @@ export function AdminEditBlogPageContent() {
                 folder={`admin/blogs/${blogId}/`}
                 onUpload={(url) => setValue('cover_image', url)}
                 currentImage={coverImage || undefined}
+                maxSize="5MB"
+                recommendedSize="1200x630"
+                allowedTypes={["JPG", "PNG", "WEBP"]}
+                enableCrop
+                cropWidth={1200}
+                cropHeight={630}
               />
             </div>
 

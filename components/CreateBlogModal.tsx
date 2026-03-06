@@ -132,20 +132,17 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess, initialData }: Cre
     return slug;
   };
 
-  // Generate final slug; if the basic slug is just the generic fallback,
-  // try to create a meaningful English slug based on the title meaning.
+  // Generate final slug: always try AI first for an English, meaningful slug,
+  // then fall back to the basic ASCII slug if AI fails.
   const generateFinalSlug = async (title: string, metaDescription?: string): Promise<string> => {
-    const basicSlug = generateSlug(title);
-    if (basicSlug !== 'blog-post') {
-      return basicSlug;
-    }
     try {
       const aiSlug = await generateEnglishSlugFromTitle(title, metaDescription);
-      return aiSlug || basicSlug;
+      if (aiSlug) return aiSlug;
     } catch (error) {
       console.error('Error generating AI-based slug:', error);
-      return basicSlug;
     }
+    const basicSlug = generateSlug(title);
+    return basicSlug || 'blog-post';
   };
 
   // Helper function to award points for blog post creation
@@ -398,6 +395,9 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess, initialData }: Cre
                     maxSize="5MB"
                     recommendedSize="1200x630"
                     allowedTypes={["JPG", "PNG", "WEBP"]}
+                    enableCrop
+                    cropWidth={1200}
+                    cropHeight={630}
                     required={false}
                   />
                 </div>

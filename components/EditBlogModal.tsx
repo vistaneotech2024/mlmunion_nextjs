@@ -10,6 +10,7 @@ import { ImageUpload } from './ImageUpload';
 import { handleSupabaseError } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import { useCachedBlogCategories } from '../hooks/useCachedBlogCategories';
+import { generateEnglishSlugFromTitle } from '../lib/openai';
 
 interface BlogFormData {
   title: string;
@@ -117,15 +118,31 @@ export function EditBlogModal({ isOpen, onClose, blogId, onSuccess }: EditBlogMo
     }
   }
 
-  // Helper function to generate slug from title
+  // Helper function to generate slug from title (ASCII fallback)
   const generateSlug = (title: string): string => {
-    let slug = title.toLowerCase()
+    const normalized = title
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^\x00-\x7F]/g, ' ');
+
+    let slug = normalized
+      .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
     slug = slug.replace(/^-+|-+$/g, '');
-    return slug;
+    return slug || 'blog-post';
+  };
+
+  const generateFinalSlug = async (title: string, metaDescription?: string): Promise<string> => {
+    try {
+      const aiSlug = await generateEnglishSlugFromTitle(title, metaDescription);
+      if (aiSlug) return aiSlug;
+    } catch (error) {
+      console.error('Error generating AI-based slug (edit modal):', error);
+    }
+    return generateSlug(title);
   };
 
   const onSubmit = async (data: BlogFormData) => {
@@ -134,8 +151,8 @@ export function EditBlogModal({ isOpen, onClose, blogId, onSuccess }: EditBlogMo
     try {
       setSaving(true);
       
-      // Generate slug from title
-      const newSlug = generateSlug(data.title);
+      // Generate slug from title (AI English slug with safe fallback)
+      const newSlug = await generateFinalSlug(data.title, data.meta_description);
       
       const updateData = {
         title: data.title,
@@ -263,6 +280,9 @@ export function EditBlogModal({ isOpen, onClose, blogId, onSuccess }: EditBlogMo
                     maxSize="5MB"
                     recommendedSize="1200x630"
                     allowedTypes={["JPG", "PNG", "WEBP"]}
+                    enableCrop
+                    cropWidth={1200}
+                    cropHeight={630}
                     required={false}
                   />
                 </div>

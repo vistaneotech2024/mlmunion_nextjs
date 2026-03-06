@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react';
+import Image from 'next/image';
 import { X, Sparkles, Loader2 } from 'lucide-react';
 import { generateBlogDescription } from '../lib/openai';
 import { RichTextEditor } from './RichTextEditor';
@@ -119,7 +120,43 @@ export function AIBlogGenerator({ isOpen, onClose, onGenerated }: AIBlogGenerato
         />
 
         {/* Modal panel */}
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+        <div className="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+          {loading && (
+            <div
+              className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-md vista-ai-loader"
+              role="status"
+              aria-live="polite"
+              aria-label="Generating blog post"
+            >
+              <div className="flex flex-col items-center gap-4 px-6 py-8 rounded-lg bg-white/90 border border-gray-200 shadow-lg">
+                <div className="w-20 h-20 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center">
+                  <Image
+                    src="/vista_logo.png"
+                    alt="Vista Neotech Private Limited"
+                    width={58}
+                    height={58}
+                    className="object-contain"
+                    priority
+                  />
+                </div>
+
+                <div className="flex flex-col items-center gap-3">
+                  <div className="wrapper" aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <div className="text-sm font-semibold text-purple-700">Generating your blog post…</div>
+                </div>
+
+                <div className="text-xs text-gray-600">
+                  AI Powered by <span className="font-semibold text-gray-800">Vista Neotech Private Limited</span>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">

@@ -161,3 +161,34 @@
   margin-bottom: 0;
 }
 
+/* AI blog generator loader (scoped to avoid global span/body styles) */
+@keyframes vista-scale-up-down {
+  to {
+    height: calc(var(--d) * 4);
+  }
+}
+
+.vista-ai-loader .wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: calc(var(--d, 10px) * 4);
+}
+
+.vista-ai-loader .wrapper span {
+  --d: 10px;
+  display: inline-block;
+  margin-inline: max(2px, calc(var(--d) / 5));
+  width: var(--d);
+  height: var(--d);
+  background: #7c3aed; /* purple-600 */
+  border-radius: calc(var(--d) / 2);
+  animation: vista-scale-up-down 300ms var(--delay) linear alternate infinite;
+}
+
+.vista-ai-loader .wrapper span:nth-child(1) { --delay: -500ms; }
+.vista-ai-loader .wrapper span:nth-child(2) { --delay: -400ms; }
+.vista-ai-loader .wrapper span:nth-child(3) { --delay: -300ms; }
+.vista-ai-loader .wrapper span:nth-child(4) { --delay: -200ms; }
+.vista-ai-loader .wrapper span:nth-child(5) { --delay: -100ms; }
+

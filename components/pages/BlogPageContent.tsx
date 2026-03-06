@@ -22,7 +22,7 @@ export function BlogPageContent() {
   const [totalCount, setTotalCount] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
   const [showMobileFilters, setShowMobileFilters] = React.useState(false);
-  const blogsPerPage = 8;
+  const blogsPerPage = 16;
   const { user } = useAuth();
   const router = useRouter();
 
