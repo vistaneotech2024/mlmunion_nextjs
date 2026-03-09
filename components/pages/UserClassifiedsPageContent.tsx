@@ -118,9 +118,15 @@ export function UserClassifiedsPageContent() {
     meta_keywords?: string,
     focus_keyword?: string
   ) => {
-    router.push(
-      `/classifieds/new?aiGenerated=true&title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}`
-    );
+    const params = new URLSearchParams({
+      aiGenerated: 'true',
+      title: title,
+      description: description,
+    });
+    if (meta_description) params.set('meta_description', meta_description);
+    if (meta_keywords) params.set('meta_keywords', meta_keywords);
+    if (focus_keyword) params.set('focus_keyword', focus_keyword);
+    router.push(`/classifieds/new?${params.toString()}`);
     setShowAIGenerator(false);
   };
 

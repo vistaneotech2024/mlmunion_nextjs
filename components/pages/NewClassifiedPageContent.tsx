@@ -10,6 +10,7 @@ import { ImageUpload } from '@/components/ImageUpload';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { AIClassifiedGenerator } from '@/components/AIClassifiedGenerator';
 import { handleSupabaseError } from '@/lib/supabase';
+import { generateEnglishSlugFromTitle } from '@/lib/openai';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -120,16 +121,31 @@ export function NewClassifiedPageContent() {
     toast.success('AI-generated content loaded! Complete the form to post your classified.');
   };
 
-  // Helper function to generate slug from title
+  // ASCII-only fallback slug
   const generateSlug = (title: string): string => {
-    let slug = title
+    const normalized = title
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^\x00-\x7F]/g, ' ');
+    let slug = normalized
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
     slug = slug.replace(/^-+|-+$/g, '');
-    return slug;
+    return slug || 'classified';
+  };
+
+  // AI English meaningful slug, fallback to ASCII slug
+  const generateFinalSlug = async (title: string, metaDescription?: string): Promise<string> => {
+    try {
+      const aiSlug = await generateEnglishSlugFromTitle(title, metaDescription);
+      if (aiSlug) return aiSlug;
+    } catch (error) {
+      console.error('Error generating AI slug for classified:', error);
+    }
+    return generateSlug(title);
   };
 
   // Helper function to award points for classified post creation
@@ -184,7 +200,7 @@ export function NewClassifiedPageContent() {
       isSubmittingRef.current = true;
       setLoading(true);
 
-      const slug = generateSlug(data.title);
+      const slug = await generateFinalSlug(data.title, data.meta_description);
 
       const { error, data: insertedData } = await supabase
         .from('classifieds')
@@ -196,7 +212,7 @@ export function NewClassifiedPageContent() {
             category: data.category,
             url: data.url,
             image_url: data.image_url || null,
-            slug: slug,
+            slug,
             status: 'active',
             company_id: data.company_id || null,
             meta_description: data.meta_description?.trim() || null,
@@ -294,8 +310,11 @@ export function NewClassifiedPageContent() {
                     currentImage={imageUrl}
                     className="w-full"
                     maxSize="5MB"
-                    recommendedSize="800x600"
+                    recommendedSize="1200x630"
                     allowedTypes={['JPG', 'PNG', 'WEBP']}
+                    enableCrop
+                    cropWidth={1200}
+                    cropHeight={630}
                     required={false}
                   />
                 </div>

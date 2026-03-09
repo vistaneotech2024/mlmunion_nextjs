@@ -106,6 +106,8 @@ export async function generateClassifiedDescription(
     keyLength: API_KEY.length
   });
 
+  const targetLanguage = params.language && params.language !== 'Other' ? params.language : 'English';
+
   const titlePrompt = params.title
   ? `Create ONE original, SEO-optimized title (60–70 characters) for a Direct Selling / MLM / Network Marketing classified.
 
@@ -116,6 +118,7 @@ Rules:
 - High click intent, non-generic phrasing
 - Natural keyword use, no repetition
 - 100% plagiarism-free
+- Write the title in ${targetLanguage} only.
 
 Return only the title text.`
   : `Create ONE original, SEO-optimized title (60–70 characters) for a Direct Selling / MLM / Network Marketing classified.
@@ -126,6 +129,7 @@ Rules:
 - High click intent, non-generic phrasing
 - Natural keyword use, no repetition
 - 100% plagiarism-free
+- Write the title in ${targetLanguage} only.
 
 Return only the title text.`;
   const descriptionPrompt = `
@@ -150,58 +154,14 @@ HTML:
 - Use <strong> 2–3 times per paragraph
 - Bold urgency in the CTA paragraph
 - Return ONLY valid HTML
+
+Language:
+- Write the entire response in ${targetLanguage} only, regardless of the input language.
 `;
 
   try {
-    // First, generate the title if not provided
+    // Always generate the title via API so it is in the selected language
     let generatedTitle = params.title || '';
-    
-    if (!params.title) {
-      // Determine API endpoint based on provider
-      let apiUrl = 'https://api.openai.com/v1/chat/completions';
-      if (apiKeyConfig.provider === 'gemini') {
-        apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent`;
-      } else if (apiKeyConfig.provider === 'claude') {
-        apiUrl = 'https://api.anthropic.com/v1/messages';
-      }
-
-      // For now, we support GPT. Gemini and Claude support can be added later
-      if (apiKeyConfig.provider !== 'gpt') {
-        throw new Error(`AI provider "${apiKeyConfig.provider}" is not yet supported. Please use GPT provider.`);
-      }
-
-      const titleResponse = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`
-        },
-        body: JSON.stringify({
-          model: activeModel,
-          messages: [
-            {
-              role: 'system',
-              content: 'You are an SEO expert specializing in creating optimized titles for network marketing opportunities. Generate concise, keyword-rich titles (60-70 characters) that are compelling and SEO-friendly.'
-            },
-            {
-              role: 'user',
-              content: titlePrompt
-            }
-          ],
-          temperature: 0.8,
-          max_tokens: 100
-        })
-      });
-
-      if (titleResponse.ok) {
-        const titleData = await titleResponse.json();
-        generatedTitle = titleData.choices[0]?.message?.content?.trim() || params.shortDescription.substring(0, 70);
-        // Remove quotes if present
-        generatedTitle = generatedTitle.replace(/^["']|["']$/g, '');
-      }
-    }
-
-    // Determine API endpoint based on provider
     let apiUrl = 'https://api.openai.com/v1/chat/completions';
     if (apiKeyConfig.provider === 'gemini') {
       apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent`;
@@ -209,9 +169,42 @@ HTML:
       apiUrl = 'https://api.anthropic.com/v1/messages';
     }
 
-    // For now, we support GPT. Gemini and Claude support can be added later
     if (apiKeyConfig.provider !== 'gpt') {
       throw new Error(`AI provider "${apiKeyConfig.provider}" is not yet supported. Please use GPT provider.`);
+    }
+
+    const titleResponse = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_KEY}`
+      },
+      body: JSON.stringify({
+        model: activeModel,
+        messages: [
+          {
+            role: 'system',
+            content: `You are an SEO expert specializing in creating optimized titles for network marketing opportunities. Generate concise, keyword-rich titles (60-70 characters) that are compelling and SEO-friendly. You MUST write the title only in ${targetLanguage}. Never respond in another language.`
+          },
+          {
+            role: 'user',
+            content: titlePrompt
+          }
+        ],
+        temperature: 0.8,
+        max_tokens: 100
+      })
+    });
+
+    if (titleResponse.ok) {
+      const titleData = await titleResponse.json();
+      const apiTitle = titleData.choices[0]?.message?.content?.trim() || '';
+      if (apiTitle) {
+        generatedTitle = apiTitle.replace(/^["']|["']$/g, '');
+      }
+      if (!generatedTitle) {
+        generatedTitle = params.title || params.shortDescription.substring(0, 70);
+      }
     }
 
     // Generate the description
@@ -226,7 +219,7 @@ HTML:
         messages: [
           {
             role: 'system',
-            content: 'You are a professional SEO copywriter specializing in Direct Selling / MLM / Network Marketing classified ads. Write original, engaging, SEO-optimized content with proper HTML formatting. Focus on benefits, opportunities, and credibility.'
+            content: `You are a professional SEO copywriter specializing in Direct Selling / MLM / Network Marketing classified ads. Write original, engaging, SEO-optimized content with proper HTML formatting. Focus on benefits, opportunities, and credibility. Always respond in ${targetLanguage} only, regardless of the input language.`
           },
           {
             role: 'user',
@@ -286,7 +279,7 @@ HTML:
       return p.replace(/<\/?p[^>]*>/g, '').trim();
     });
 
-    // Extract SEO keywords from the content (simple extraction)
+    // Fallback: simple keyword extraction from content
     const textContent = generatedText.replace(/<[^>]*>/g, ' ');
     const words = textContent.toLowerCase().match(/\b\w{4,}\b/g) || [];
     const wordFreq: { [key: string]: number } = {};
@@ -295,20 +288,69 @@ HTML:
         wordFreq[word] = (wordFreq[word] || 0) + 1;
       }
     });
-    const seoKeywords = Object.entries(wordFreq)
+    const fallbackSeoKeywords = Object.entries(wordFreq)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 10)
       .map(([word]) => word);
-
-    // Generate meta description (150-160 characters)
     const plainText = generatedText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-    const meta_description = plainText.substring(0, 160).trim();
-    
-    // Generate meta keywords (comma-separated, top 5-7 keywords)
-    const meta_keywords = seoKeywords.slice(0, 7).join(', ');
-    
-    // Generate focus keyword (most important keyword, usually first or most frequent)
-    const focus_keyword = seoKeywords.length > 0 ? seoKeywords[0] : '';
+    const fallbackMetaDescription = plainText.substring(0, 160).trim();
+    const fallbackMetaKeywords = fallbackSeoKeywords.slice(0, 7).join(', ');
+    const fallbackFocusKeyword = fallbackSeoKeywords.length > 0 ? fallbackSeoKeywords[0] : '';
+
+    // Generate meta description, meta keywords, focus keyword, and SEO keywords via AI (in selected language)
+    let meta_description = fallbackMetaDescription;
+    let meta_keywords = fallbackMetaKeywords;
+    let focus_keyword = fallbackFocusKeyword;
+    let seoKeywords = fallbackSeoKeywords;
+    const plainTextExcerpt = plainText.substring(0, 600);
+    try {
+      const seoPrompt = `You are an SEO expert for classified ads. Output exactly four lines in this format (no other text):
+META_DESCRIPTION: [One compelling meta description for a classified ad, max 155 characters, in ${targetLanguage} only]
+META_KEYWORDS: [5-8 comma-separated SEO keywords for this classified, in ${targetLanguage}]
+FOCUS_KEYWORD: [One main keyword or short phrase for this classified, in ${targetLanguage}]
+SEO_KEYWORDS: [Same or similar keywords as META_KEYWORDS, comma-separated, 5-10 terms, in ${targetLanguage}]
+
+Classified title: ${generatedTitle}
+Content excerpt: ${plainTextExcerpt}`;
+
+      const seoResponse = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_KEY}`
+        },
+        body: JSON.stringify({
+          model: activeModel,
+          messages: [
+            {
+              role: 'system',
+              content: `You output only META_DESCRIPTION, META_KEYWORDS, FOCUS_KEYWORD, and SEO_KEYWORDS in the requested language. No preamble. Use the exact labels.`
+            },
+            { role: 'user', content: seoPrompt }
+          ],
+          temperature: 0.5,
+          max_tokens: 300
+        })
+      });
+      if (seoResponse.ok) {
+        const seoData = await seoResponse.json();
+        const seoText = (seoData.choices?.[0]?.message?.content || '').trim();
+        const metaDescMatch = seoText.match(/META_DESCRIPTION:\s*([\s\S]+?)(?=\n|META_KEYWORDS:|$)/i);
+        const metaKwMatch = seoText.match(/META_KEYWORDS:\s*([\s\S]+?)(?=\n|FOCUS_KEYWORD:|$)/i);
+        const focusKwMatch = seoText.match(/FOCUS_KEYWORD:\s*([\s\S]+?)(?=\n|SEO_KEYWORDS:|$)/i);
+        const seoKwMatch = seoText.match(/SEO_KEYWORDS:\s*([\s\S]+?)(?=\n|$)/i);
+        if (metaDescMatch?.[1]) meta_description = metaDescMatch[1].trim().substring(0, 160);
+        if (metaKwMatch?.[1]) meta_keywords = metaKwMatch[1].trim();
+        if (focusKwMatch?.[1]) focus_keyword = focusKwMatch[1].trim();
+        if (seoKwMatch?.[1]) {
+          seoKeywords = seoKwMatch[1].split(',').map((s: string) => s.trim()).filter(Boolean).slice(0, 10);
+        } else if (meta_keywords) {
+          seoKeywords = meta_keywords.split(',').map((s: string) => s.trim()).filter(Boolean);
+        }
+      }
+    } catch (_) {
+      // use fallbacks already set
+    }
 
     return {
       title: generatedTitle,

@@ -129,12 +129,12 @@ export function AIBlogGenerator({ isOpen, onClose, onGenerated }: AIBlogGenerato
               aria-label="Generating blog post"
             >
               <div className="flex flex-col items-center gap-4 px-6 py-8 rounded-lg bg-white/90 border border-gray-200 shadow-lg">
-                <div className="w-20 h-20 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center">
+                <div className="w-20 h-20 flex items-center justify-center">
                   <Image
-                    src="/vista_logo.png"
-                    alt="Vista Neotech Private Limited"
-                    width={58}
-                    height={58}
+                    src="/mlm_union.png"
+                    alt="MLM Union"
+                    width={80}
+                    height={80}
                     className="object-contain"
                     priority
                   />
@@ -154,6 +154,14 @@ export function AIBlogGenerator({ isOpen, onClose, onGenerated }: AIBlogGenerato
                 <div className="text-xs text-gray-600">
                   AI Powered by <span className="font-semibold text-gray-800">Vista Neotech Private Limited</span>
                 </div>
+                <a
+                  href="https://vistaneotech.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:underline"
+                >
+                  Visit vistaneotech.com →
+                </a>
               </div>
             </div>
           )}

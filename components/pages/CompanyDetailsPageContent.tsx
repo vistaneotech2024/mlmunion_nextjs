@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { cache } from '@/lib/cache';
-import { MapPin, Calendar, Globe, Star as StarIcon, ArrowLeft, ChevronUp, ChevronDown, DollarSign, Newspaper, Briefcase, Eye, ThumbsUp, BookOpen } from 'lucide-react';
+import { MapPin, Calendar, Globe, Star as StarIcon, ArrowLeft, ChevronUp, ChevronDown, DollarSign, Newspaper, Briefcase, Eye, ThumbsUp, BookOpen, Trophy, MessageSquare, UserPlus, TrendingUp } from 'lucide-react';
 import { SocialShare } from '@/components/SocialShare';
 import { handleSupabaseError } from '@/lib/supabase';
 import { CompanyDetailSkeleton } from '@/components/skeletons';
@@ -96,6 +96,15 @@ export function CompanyDetailsPageContent({ country_name, slug }: CompanyDetails
   const [blogsToShow, setBlogsToShow] = React.useState(3);
   const [allRelatedBlogs, setAllRelatedBlogs] = React.useState<any[]>([]);
   const [activeTab, setActiveTab] = React.useState<'news' | 'classifieds' | 'blogs'>('news');
+  const [activeCtaGifIndex, setActiveCtaGifIndex] = React.useState<number>(0);
+
+  // One at a time in loop: 1 → 2 → 3 → 4 → 1 → 2 → ...
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveCtaGifIndex((i) => (i + 1) % 4);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Helper function to convert country name to URL-friendly slug
   const countryNameToSlug = (name: string): string => {
@@ -1099,8 +1108,98 @@ export function CompanyDetailsPageContent({ country_name, slug }: CompanyDetails
 
             {/* Side Info */}
             <div className="space-y-3 md:space-y-1">
+              {/* CTA blocks - whole tab clickable, click gif on each */}
+              <button
+                type="button"
+                onClick={() => {
+                  document.getElementById('company-vote-review')?.scrollIntoView({ behavior: 'smooth' });
+                  if (user && canVote) setShowVoteModal(true);
+                }}
+                className="group w-full text-left bg-amber-50/90 rounded-lg border border-amber-200/70 overflow-hidden transition-shadow duration-300 hover:shadow-sm cursor-pointer"
+              >
+                <div className="px-3 py-2 flex items-center gap-2.5">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-md bg-amber-100 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                    <Trophy className="h-4 w-4 text-amber-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-amber-900/90 leading-snug">
+                      Vote for top rank.
+                    </p>
+                    <span className="mt-0.5 flex w-full items-center gap-1 text-xs font-bold text-amber-700 group-hover:text-amber-800">
+                      Vote now
+                      <img src="/click.gif" alt="" className={`ml-auto h-8 w-8 object-contain flex-shrink-0 transition-opacity duration-500 ${activeCtaGifIndex === 0 ? 'opacity-100' : 'opacity-0'}`} />
+                    </span>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  document.getElementById('company-vote-review')?.scrollIntoView({ behavior: 'smooth' });
+                  setShowEditReviewSection(true);
+                  setShowReviewForm(true);
+                }}
+                className="group w-full text-left bg-emerald-50/90 rounded-lg border border-emerald-200/70 overflow-hidden transition-shadow duration-300 hover:shadow-sm cursor-pointer"
+              >
+                <div className="px-3 py-2 flex items-center gap-2.5">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-md bg-emerald-100 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                    <MessageSquare className="h-4 w-4 text-emerald-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-emerald-900/90 leading-snug">
+                      Share a review for others.
+                    </p>
+                    <span className="mt-0.5 flex w-full items-center gap-1 text-xs font-bold text-emerald-700 group-hover:text-emerald-800">
+                      Write review
+                      <img src="/click.gif" alt="" className={`ml-auto h-8 w-8 object-contain flex-shrink-0 transition-opacity duration-500 ${activeCtaGifIndex === 1 ? 'opacity-100' : 'opacity-0'}`} />
+                    </span>
+                  </div>
+                </div>
+              </button>
+
+              <Link
+                href="/direct-sellers"
+                className="group block w-full text-left bg-sky-50/90 rounded-lg border border-sky-200/70 overflow-hidden transition-shadow duration-300 hover:shadow-sm cursor-pointer"
+              >
+                <div className="px-3 py-2 flex items-center gap-2.5">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-md bg-sky-100 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                    <UserPlus className="h-4 w-4 text-sky-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-sky-900/90 leading-snug">
+                      Get more downline — register.
+                    </p>
+                    <span className="mt-0.5 flex w-full items-center gap-1 text-xs font-bold text-sky-700 group-hover:text-sky-800">
+                      Register now
+                      <img src="/click.gif" alt="" className={`ml-auto h-8 w-8 object-contain flex-shrink-0 transition-opacity duration-500 ${activeCtaGifIndex === 2 ? 'opacity-100' : 'opacity-0'}`} />
+                    </span>
+                  </div>
+                </div>
+              </Link>
+
+              <Link
+                href="/recommended-direct-sellers"
+                className="group block w-full text-left bg-violet-50/90 rounded-lg border border-violet-200/70 overflow-hidden transition-shadow duration-300 hover:shadow-sm cursor-pointer"
+              >
+                <div className="px-3 py-2 flex items-center gap-2.5">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-md bg-violet-100 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                    <TrendingUp className="h-4 w-4 text-violet-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-violet-900/90 leading-snug">
+                      Become Recommended — higher growth.
+                    </p>
+                    <span className="mt-0.5 flex w-full items-center gap-1 text-xs font-bold text-violet-700 group-hover:text-violet-800">
+                      Get verified
+                      <img src="/click.gif" alt="" className={`ml-auto h-8 w-8 object-contain flex-shrink-0 transition-opacity duration-500 ${activeCtaGifIndex === 3 ? 'opacity-100' : 'opacity-0'}`} />
+                    </span>
+                  </div>
+                </div>
+              </Link>
+
               {/* Vote and Review Section - Combined */}
-              <div className="bg-white border border-gray-200">
+              <div id="company-vote-review" className="bg-white border border-gray-200 scroll-mt-4">
                 <div className="p-3 md:p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">

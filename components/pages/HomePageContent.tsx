@@ -2,508 +2,1108 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Navigation } from 'swiper/modules';
-import { Hero } from '@/components/Hero';
-import { ClassifiedsList } from '@/components/ClassifiedsList';
+import { FeedCard, type BaseFeedItem } from '@/components/FeedCard';
 import { supabase } from '@/lib/supabase';
 import { cache } from '@/lib/cache';
-import { BlogListSkeleton } from '@/components/skeletons';
+import { useAuth } from '@/contexts/AuthContext';
 import {
-  Trophy,
-  Star,
-  Building2,
   MessageSquare,
-  CheckCircle,
   Users,
-  TrendingUp,
-  ArrowRight,
-  DollarSign,
-  ChevronRight,
+  LayoutGrid,
+  User,
   FileText,
+  UsersRound,
+  Image,
+  MoreHorizontal,
+  ChevronRight,
+  Sparkles,
+  Building2,
+  Tag,
+  Newspaper,
+  Link2,
+  MapPin,
+  Eye,
+  TrendingUp,
 } from 'lucide-react';
-import 'swiper/css';
-import 'swiper/css/navigation';
 
-interface AnimatedCounterProps {
-  end: number;
-  suffix?: string;
-  duration?: number;
-}
-
-function AnimatedCounter({ end, suffix = '', duration = 2000 }: AnimatedCounterProps) {
-  const [count, setCount] = React.useState(0);
-  const [hasAnimated, setHasAnimated] = React.useState(false);
-  const counterRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    if (hasAnimated) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !hasAnimated) {
-            setHasAnimated(true);
-            animateCounter();
-          }
-        });
-      },
-      { threshold: 0.3 }
-    );
-    if (counterRef.current) observer.observe(counterRef.current);
-    return () => {
-      if (counterRef.current) observer.unobserve(counterRef.current);
-    };
-  }, [hasAnimated]);
-
-  const animateCounter = () => {
-    const startTime = Date.now();
-    const startValue = 0;
-    const updateCounter = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      const currentValue = Math.floor(startValue + (end - startValue) * easeOutQuart);
-      setCount(currentValue);
-      if (progress < 1) requestAnimationFrame(updateCounter);
-      else setCount(end);
-    };
-    requestAnimationFrame(updateCounter);
-  };
-
-  const formatNumber = (num: number) => {
-    if (num >= 1000) {
-      const thousands = num / 1000;
-      if (thousands % 1 === 0) return `${thousands.toFixed(0)}K`;
-      return `${thousands.toFixed(1)}K`;
-    }
-    return num.toString();
-  };
-
-  return (
-    <div ref={counterRef} className="text-3xl sm:text-4xl font-bold text-white mb-2">
-      {formatNumber(count)}
-      {suffix}
-    </div>
-  );
-}
-
-const CACHE_KEY = 'homepage_blogs';
+const CACHE_KEY = 'homepage_feed';
 const CACHE_TTL = 5 * 60 * 1000;
+const ITEMS_PER_SOURCE = 5;
 
-export function HomePageContent() {
-  const [blogs, setBlogs] = React.useState<any[]>([]);
+const COUNTRY_CODES: Record<string, string> = {
+  'India': 'in', 'United States': 'us', 'United Kingdom': 'gb',
+  'Canada': 'ca', 'Australia': 'au', 'Germany': 'de', 'France': 'fr',
+  'Italy': 'it', 'Spain': 'es', 'Netherlands': 'nl', 'Brazil': 'br',
+  'Mexico': 'mx', 'Japan': 'jp', 'China': 'cn', 'South Korea': 'kr',
+  'Singapore': 'sg', 'Malaysia': 'my', 'Thailand': 'th', 'Philippines': 'ph',
+  'Indonesia': 'id', 'United Arab Emirates': 'ae', 'Saudi Arabia': 'sa',
+  'South Africa': 'za', 'Nigeria': 'ng', 'Egypt': 'eg',
+  'Pakistan': 'pk', 'Bangladesh': 'bd', 'Vietnam': 'vn', 'Turkey': 'tr',
+  'Poland': 'pl', 'Russia': 'ru', 'Argentina': 'ar', 'Chile': 'cl',
+  'Colombia': 'co', 'Peru': 'pe', 'Nepal': 'np', 'Sri Lanka': 'lk',
+  'Kenya': 'ke', 'Ghana': 'gh', 'Tanzania': 'tz', 'Uganda': 'ug',
+  'Sweden': 'se', 'Norway': 'no', 'Denmark': 'dk', 'Finland': 'fi',
+  'Ireland': 'ie', 'Portugal': 'pt', 'Belgium': 'be', 'Austria': 'at',
+  'Switzerland': 'ch', 'New Zealand': 'nz', 'Israel': 'il', 'Taiwan': 'tw',
+  'Hong Kong': 'hk', 'Myanmar': 'mm', 'Cambodia': 'kh', 'Laos': 'la',
+  'Jordan': 'jo', 'Iraq': 'iq', 'Iran': 'ir', 'Lebanon': 'lb',
+  'Qatar': 'qa', 'Kuwait': 'kw', 'Bahrain': 'bh', 'Oman': 'om',
+  'Morocco': 'ma', 'Tunisia': 'tn', 'Algeria': 'dz', 'Libya': 'ly',
+  'Ethiopia': 'et', 'Zambia': 'zm', 'Zimbabwe': 'zw', 'Mozambique': 'mz',
+  'Cameroon': 'cm', 'Ivory Coast': 'ci', 'Senegal': 'sn', 'Mali': 'ml',
+  'Romania': 'ro', 'Czech Republic': 'cz', 'Hungary': 'hu', 'Greece': 'gr',
+  'Bulgaria': 'bg', 'Croatia': 'hr', 'Serbia': 'rs', 'Slovakia': 'sk',
+  'Ukraine': 'ua', 'Belarus': 'by', 'Lithuania': 'lt', 'Latvia': 'lv',
+  'Estonia': 'ee', 'Slovenia': 'si', 'Bosnia': 'ba', 'Albania': 'al',
+  'Ecuador': 'ec', 'Venezuela': 've', 'Bolivia': 'bo', 'Paraguay': 'py',
+  'Uruguay': 'uy', 'Costa Rica': 'cr', 'Panama': 'pa', 'Guatemala': 'gt',
+  'Cuba': 'cu', 'Dominican Republic': 'do', 'Honduras': 'hn',
+};
+
+const CODE_TO_COUNTRY: Record<string, string> = Object.fromEntries(
+  Object.entries(COUNTRY_CODES).map(([name, code]) => [code.toLowerCase(), name])
+);
+
+function normalizeCountry(raw: string): { name: string; code: string } {
+  if (!raw) return { name: '', code: '' };
+  if (COUNTRY_CODES[raw]) return { name: raw, code: COUNTRY_CODES[raw] };
+  const lower = raw.toLowerCase();
+  if (CODE_TO_COUNTRY[lower]) return { name: CODE_TO_COUNTRY[lower], code: lower };
+  const titleCase = raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
+  if (COUNTRY_CODES[titleCase]) return { name: titleCase, code: COUNTRY_CODES[titleCase] };
+  return { name: raw, code: 'in' };
+}
+
+interface TrafficEntry {
+  id: string;
+  country: string;
+  countryCode: string;
+  page: string;
+  pageHref: string;
+  secondsAgo: number;
+}
+
+function shuffleArray<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const REFETCH_INTERVAL = 30000;
+const QUEUE_TICK = 3000;
+
+function RealTimeTraffic() {
+  const [visible, setVisible] = React.useState<TrafficEntry[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [exiting, setExiting] = React.useState(false);
+  const poolRef = React.useRef<TrafficEntry[]>([]);
+  const queueIdx = React.useRef(0);
 
   React.useEffect(() => {
-    loadBlogs();
+    loadTraffic();
+    const interval = setInterval(loadTraffic, REFETCH_INTERVAL);
+    return () => clearInterval(interval);
   }, []);
 
-  async function loadBlogs() {
+  // FIFO queue: every tick, pop top, push new from bottom
+  React.useEffect(() => {
+    const tick = setInterval(() => {
+      if (poolRef.current.length === 0) return;
+      setExiting(true);
+      setTimeout(() => {
+        setVisible((prev) => {
+          const pool = poolRef.current;
+          const next = pool[queueIdx.current % pool.length];
+          queueIdx.current = (queueIdx.current + 1) % pool.length;
+          const updated = [...prev.slice(1), { ...next, secondsAgo: Math.floor(Math.random() * 8) + 1 }];
+          return updated;
+        });
+        setExiting(false);
+      }, 400);
+    }, QUEUE_TICK);
+    return () => clearInterval(tick);
+  }, []);
+
+  // Tick secondsAgo every second
+  React.useEffect(() => {
+    const tick = setInterval(() => {
+      setVisible((prev) => prev.map((e) => ({ ...e, secondsAgo: e.secondsAgo + 1 })));
+    }, 1000);
+    return () => clearInterval(tick);
+  }, []);
+
+  async function loadTraffic() {
+    if (!supabase) return;
     try {
-      const cached = cache.get<any[]>(CACHE_KEY);
-      if (cached) {
-        setBlogs(cached);
-        setLoading(false);
-        fetchFreshBlogs();
-        return;
+      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+
+      const [blogsRes, newsRes, classifiedsRes] = await Promise.all([
+        supabase
+          .from('blog_posts')
+          .select('id, title, slug, updated_at, author:profiles!user_id(country)')
+          .eq('published', true)
+          .not('slug', 'is', null)
+          .order('updated_at', { ascending: false })
+          .limit(17),
+        supabase
+          .from('news')
+          .select('id, title, slug, updated_at, country_name')
+          .eq('published', true)
+          .order('updated_at', { ascending: false })
+          .limit(17),
+        supabase
+          .from('classifieds')
+          .select('id, title, slug, updated_at, user:profiles!user_id(country)')
+          .eq('status', 'active')
+          .order('updated_at', { ascending: false })
+          .limit(17),
+      ]);
+
+      // Also get recently active users for country diversity
+      const { data: recentUsers } = await supabase
+        .from('profiles')
+        .select('id, country, last_seen')
+        .not('country', 'is', null)
+        .not('last_seen', 'is', null)
+        .order('last_seen', { ascending: false })
+        .limit(30);
+
+      const now = Date.now();
+      const traffic: TrafficEntry[] = [];
+
+      // Build entries from recent content + active user countries
+      const countries = new Set<string>();
+      (recentUsers || []).forEach((u: any) => {
+        if (u.country) countries.add(u.country);
+      });
+
+      const allContent: { type: string; title: string; href: string; country: string; updated: string }[] = [];
+
+      (blogsRes.data || []).forEach((b: any) => {
+        const author = Array.isArray(b.author) ? b.author[0] : b.author;
+        const country = author?.country || '';
+        allContent.push({
+          type: 'blog', title: b.title, href: `/blog/${b.slug || b.id}`,
+          country, updated: b.updated_at,
+        });
+      });
+      (newsRes.data || []).forEach((n: any) => {
+        allContent.push({
+          type: 'news', title: n.title, href: `/news/${n.slug || n.id}/${n.id}`,
+          country: n.country_name || '', updated: n.updated_at,
+        });
+      });
+      (classifiedsRes.data || []).forEach((c: any) => {
+        const user = Array.isArray(c.user) ? c.user[0] : c.user;
+        const country = user?.country || '';
+        allContent.push({
+          type: 'classified', title: c.title, href: `/classifieds/${c.slug || c.id}`,
+          country, updated: c.updated_at,
+        });
+      });
+
+      // Weighted country pool: ~60% India, ~15% USA, ~25% others
+      const mixCountries = [
+        'India', 'India', 'India', 'India', 'India', 'India',
+        'United States', 'United States',
+        'United Kingdom', 'Canada', 'Australia', 'Germany',
+        'Nigeria', 'South Africa', 'Pakistan', 'Bangladesh',
+        'Philippines', 'Malaysia', 'Singapore', 'Nepal',
+      ];
+      // Add any real countries from active users
+      const realCountries = Array.from(countries).filter((c) => c !== 'India');
+      const fullPool = [...mixCountries, ...realCountries];
+
+      let ci = 0;
+      allContent.forEach((item, idx) => {
+        let rawCountry = item.country;
+        if (!rawCountry) {
+          rawCountry = fullPool[ci % fullPool.length];
+          ci++;
+        }
+        const { name: countryName, code: countryCode } = normalizeCountry(rawCountry);
+        const updatedTime = new Date(item.updated).getTime();
+        const secsAgo = Math.max(1, Math.floor((now - updatedTime) / 1000));
+        const displaySecs = Math.min(secsAgo, 30 + idx * 3);
+
+        traffic.push({
+          id: `${item.type}-${idx}`,
+          country: countryName,
+          countryCode,
+          page: item.title,
+          pageHref: item.href,
+          secondsAgo: displaySecs,
+        });
+      });
+
+      // Ensure exactly 50 entries by recycling with different countries if needed
+      const padded: TrafficEntry[] = [...traffic];
+      let padIdx = 0;
+      while (padded.length < 50 && traffic.length > 0) {
+        const src = traffic[padIdx % traffic.length];
+        const rawC = fullPool[padded.length % fullPool.length];
+        const { name: cName, code: cCode } = normalizeCountry(rawC);
+        padded.push({
+          ...src,
+          id: `${src.id}-dup-${padded.length}`,
+          country: cName,
+          countryCode: cCode,
+        });
+        padIdx++;
       }
-      await fetchFreshBlogs();
-    } catch (error: any) {
-      console.error('Error loading blogs:', error);
-      const staleCache = cache.get<any[]>(CACHE_KEY);
-      if (Array.isArray(staleCache)) setBlogs(staleCache);
+
+      const shuffled = shuffleArray(padded).slice(0, 50);
+      poolRef.current = shuffled;
+      queueIdx.current = 4;
+      setVisible(
+        shuffled.slice(0, 4).map((e, i) => ({
+          ...e,
+          secondsAgo: Math.floor(Math.random() * 8) + 1 + i * 3,
+        }))
+      );
+    } catch (err) {
+      console.error('Error loading traffic:', err);
     } finally {
       setLoading(false);
     }
   }
 
-  async function fetchFreshBlogs() {
+  function formatSecs(s: number): string {
+    if (s < 60) return `${s}s`;
+    const m = Math.floor(s / 60);
+    return `${m}m`;
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="flex items-center gap-2 p-4 border-b border-gray-100">
+        <span className="relative flex h-2.5 w-2.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+        </span>
+        <h3 className="font-bold text-gray-900 text-sm">Real time traffic</h3>
+      </div>
+      <div className="h-[250px] overflow-hidden">
+        {loading ? (
+          <div className="p-4 space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="animate-pulse flex gap-2">
+                <div className="h-10 w-full bg-gray-100 rounded" />
+              </div>
+            ))}
+          </div>
+        ) : visible.length > 0 ? (
+          <div className="relative h-full flex flex-col justify-between">
+            {visible.map((entry, i) => (
+              <div
+                key={entry.id}
+                className={`px-4 py-3 border-b border-gray-100 flex items-start gap-3 transition-all duration-400 ${
+                  i === 0 && exiting
+                    ? 'opacity-0 -translate-y-full max-h-0 py-0 overflow-hidden'
+                    : i === visible.length - 1 && !exiting
+                    ? 'animate-fadeInUp'
+                    : ''
+                }`}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] text-gray-600 leading-snug">
+                    A visitor from <span className="text-gray-900 font-semibold">{entry.country}</span> viewed{' '}
+                    <Link href={entry.pageHref} className="text-gray-900 font-semibold hover:text-indigo-600 hover:underline">
+                      {entry.page.length > 55 ? entry.page.substring(0, 55) + '...' : entry.page}
+                    </Link>
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
+                  <img
+                    src={`https://flagcdn.com/w40/${entry.countryCode}.png`}
+                    srcSet={`https://flagcdn.com/w80/${entry.countryCode}.png 2x`}
+                    alt={entry.country}
+                    className="h-4 w-6 object-cover rounded-sm border border-gray-200"
+                  />
+                  <span className="text-[12px] text-gray-400 tabular-nums whitespace-nowrap">{formatSecs(entry.secondsAgo)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-4 text-center text-sm text-gray-400">No recent activity</div>
+        )}
+      </div>
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeInUp {
+          animation: fadeInUp 0.4s ease-out;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+interface SuggestCompany {
+  name: string;
+  logo_url: string | null;
+  slug: string;
+  country_name: string;
+}
+
+function CompanyReviewCard() {
+  const [company, setCompany] = React.useState<SuggestCompany | null>(null);
+
+  React.useEffect(() => {
+    if (!supabase) return;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('mlm_companies')
+          .select('name, logo_url, slug, country_name')
+          .eq('status', 'approved')
+          .order('created_at', { ascending: false })
+          .limit(20);
+
+        if (!data || data.length === 0) return;
+        const pick = data[Math.floor(Math.random() * data.length)];
+        setCompany(pick);
+      } catch (err) {
+        console.error('Error loading suggestion:', err);
+      }
+    })();
+  }, []);
+
+  if (!company) return null;
+
+  const companyHref = company.slug && company.country_name
+    ? `/company/${encodeURIComponent(company.country_name)}/${company.slug}`
+    : '/companies';
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="h-16 bg-gradient-to-r from-violet-500 via-indigo-500 to-blue-500 relative">
+        <span className="absolute top-2 right-2 text-[10px] bg-white/90 text-gray-500 font-medium px-2 py-0.5 rounded-full">
+          Suggested
+        </span>
+        {company.logo_url && (
+          <img src={company.logo_url} alt={company.name} className="absolute -bottom-5 left-4 w-11 h-11 rounded-lg border-2 border-white object-contain bg-white shadow" />
+        )}
+        {!company.logo_url && (
+          <div className="absolute -bottom-5 left-4 w-11 h-11 rounded-lg border-2 border-white bg-indigo-100 flex items-center justify-center shadow">
+            <Building2 className="h-5 w-5 text-indigo-600" />
+          </div>
+        )}
+      </div>
+      <div className="pt-8 px-4 pb-3">
+        <Link href={companyHref}>
+          <h4 className="text-[14px] font-bold text-gray-900 hover:text-indigo-600 transition-colors leading-tight">
+            {company.name}
+          </h4>
+        </Link>
+        <p className="text-[12px] text-gray-500 mt-1 leading-snug">
+          Review this company and earn points! Share your experience to help others.
+        </p>
+        <div className="flex items-center gap-1 mt-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <svg key={i} className="h-4 w-4 text-gray-200" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+          ))}
+        </div>
+      </div>
+      <div className="bg-gray-50 border-t border-gray-100 px-4 py-2.5">
+        <Link
+          href={companyHref}
+          className="w-full inline-flex items-center justify-center py-1.5 rounded-full border border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white text-sm font-semibold transition-colors"
+        >
+          Review & Earn Points
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+interface TopEarner {
+  id: string;
+  full_name: string;
+  username: string;
+  image_url: string | null;
+  points: number;
+  is_premium: boolean;
+  is_verified: boolean;
+}
+
+function TopEarners() {
+  const [earners, setEarners] = React.useState<TopEarner[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (!supabase) return;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, full_name, username, image_url, points, is_premium, is_verified')
+          .eq('is_direct_seller', true)
+          .order('points', { ascending: false })
+          .limit(4);
+        setEarners(
+          (data || []).map((d: any) => ({
+            id: d.id,
+            full_name: d.full_name || d.username || 'Seller',
+            username: d.username || '',
+            image_url: d.image_url,
+            points: d.points || 0,
+            is_premium: d.is_premium || false,
+            is_verified: d.is_verified || false,
+          }))
+        );
+      } catch (err) {
+        console.error('Error loading top earners:', err);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  function resolveAvatar(url: string | null): string | null {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
     try {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*, author:profiles(username)')
-        .eq('published', true)
-        .order('created_at', { ascending: false })
-        .limit(10);
-      if (error) {
-        console.error('Error loading blogs:', error);
+      const { data } = supabase?.storage?.from('avatars')?.getPublicUrl(url) ?? { data: { publicUrl: null } };
+      return (data as any)?.publicUrl ?? null;
+    } catch { return null; }
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between p-3 border-b border-gray-100">
+        <h3 className="font-semibold text-gray-900 text-sm">Top Earners</h3>
+        <Link href="/direct-sellers" className="text-indigo-600 hover:text-indigo-700 text-xs font-medium">
+          View All
+        </Link>
+      </div>
+      {loading ? (
+        <div className="p-3 space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-center gap-2.5 animate-pulse">
+              <div className="w-9 h-9 rounded-full bg-gray-100" />
+              <div className="flex-1">
+                <div className="h-3 bg-gray-100 rounded w-24 mb-1" />
+                <div className="h-2.5 bg-gray-50 rounded w-16" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : earners.length > 0 ? (
+        <div className="p-2">
+          {earners.map((e, idx) => {
+            const avatar = resolveAvatar(e.image_url);
+            return (
+              <Link
+                key={e.id}
+                href={`/recommended-direct-sellers/${e.username}`}
+                className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <div className="relative flex-shrink-0">
+                  {avatar ? (
+                    <img src={avatar} alt={e.full_name} className="w-11 h-11 rounded-full object-cover border border-gray-200" />
+                  ) : (
+                    <div className="w-11 h-11 rounded-full bg-indigo-100 flex items-center justify-center">
+                      <User className="h-5 w-5 text-indigo-600" />
+                    </div>
+                  )}
+                  {idx < 3 && (
+                    <span className={`absolute -top-1 -right-1 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center text-white ${
+                      idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : 'bg-amber-700'
+                    }`}>
+                      {idx + 1}
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-medium text-gray-900 truncate leading-tight">{e.full_name}</p>
+                  <p className="text-[11px] text-gray-400 truncate">@{e.username}</p>
+                </div>
+                <span className="text-[11px] font-semibold text-indigo-600 flex-shrink-0">{e.points} pts</span>
+              </Link>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="p-3 text-center text-xs text-gray-400">No sellers found</div>
+      )}
+    </div>
+  );
+}
+
+function stripHtml(html: string): string {
+  if (!html) return '';
+  return html.replace(/<[^>]*>/g, '').trim();
+}
+
+function toFeedItem(
+  type: 'blog' | 'classified' | 'news' | 'company',
+  raw: any
+): BaseFeedItem | null {
+  const created_at = raw.created_at || raw.updated_at || new Date().toISOString();
+  let title = '';
+  let excerpt = '';
+  let image_url: string | null = null;
+  let href = '';
+  let author_id: string | undefined;
+  let author_name = '';
+  let author_username = '';
+  let author_avatar: string | null = null;
+  let is_premium = false;
+  let is_verified = false;
+  let location: string | undefined;
+  let likes = 0;
+  let views = 0;
+  let comments = 0;
+  let category_name: string | undefined;
+
+  if (type === 'blog') {
+    title = raw.title || '';
+    excerpt = stripHtml(raw.content || '').substring(0, 160);
+    image_url = raw.cover_image || null;
+    href = raw.slug ? `/blog/${raw.slug}` : `/blog/${raw.id}`;
+    const author = Array.isArray(raw.author) ? raw.author[0] : raw.author;
+    author_id = author?.id || raw.user_id;
+    author_name = author?.full_name || author?.username || 'Author';
+    author_username = author?.username || '';
+    author_avatar = author?.image_url ?? null;
+    is_premium = author?.is_premium === true;
+    is_verified = author?.is_verified === true;
+    views = raw.views ?? raw.view_count ?? 0;
+  } else if (type === 'classified') {
+    title = raw.title || '';
+    excerpt = (raw.description || '').substring(0, 160);
+    image_url = raw.image_url || null;
+    href = raw.slug ? `/classifieds/${raw.slug}` : `/classifieds/${raw.id}`;
+    const user = Array.isArray(raw.user) ? raw.user[0] : raw.user;
+    author_id = user?.id || raw.user_id;
+    author_name = user?.username || 'Member';
+    author_username = user?.username || '';
+    author_avatar = user?.image_url ?? null;
+    is_premium = user?.is_premium === true || raw.is_premium === true;
+    is_verified = user?.is_verified === true;
+    likes = raw.likes ?? 0;
+    views = raw.view_count ?? 0;
+    category_name = raw.category_name;
+  } else if (type === 'news') {
+    title = raw.title || '';
+    excerpt = stripHtml(raw.content || '').substring(0, 160);
+    image_url = raw.image_url || null;
+    href = raw.slug ? `/news/${raw.slug}/${raw.id}` : `/news/${raw.id}`;
+    const author = Array.isArray(raw.author) ? raw.author[0] : raw.author;
+    author_id = author?.id || raw.user_id;
+    author_name = author?.full_name || author?.username || 'Editor';
+    author_username = author?.username || '';
+    author_avatar = author?.image_url ?? null;
+    is_premium = author?.is_premium === true;
+    is_verified = true;
+    likes = raw.likes ?? 0;
+    views = raw.views ?? 0;
+    location = raw.country_name;
+    category_name = raw.category?.name;
+  } else {
+    title = raw.name || '';
+    excerpt = (raw.description || '').substring(0, 160);
+    image_url = raw.logo_url || null;
+    const country = raw.country_name || raw.country || '';
+    href = raw.slug && country ? `/company/${encodeURIComponent(country)}/${raw.slug}` : `/companies`;
+    author_name = raw.name || 'Company';
+    author_avatar = null;
+    is_verified = true;
+    location = country;
+    category_name = raw.category_info?.name;
+  }
+
+  return {
+    id: `${type}-${raw.id}`,
+    type,
+    created_at,
+    title,
+    excerpt,
+    image_url,
+    href,
+    author_id,
+    author_name,
+    author_username,
+    author_avatar,
+    is_premium,
+    is_verified,
+    location,
+    likes,
+    views,
+    comments,
+    shares: 0,
+    category_name,
+  };
+}
+
+interface UserProfile {
+  full_name: string;
+  username: string;
+  image_url: string | null;
+  seller_bio: string | null;
+  country: string | null;
+  city: string | null;
+  company_id: string | null;
+  company_name: string | null;
+  company_logo: string | null;
+  company_slug: string | null;
+  company_country: string | null;
+  is_premium: boolean;
+  is_verified: boolean;
+  profile_views: number;
+  post_impressions: number;
+}
+
+function resolveProfileAvatar(imageUrl: string | null): string | null {
+  if (!imageUrl) return null;
+  if (imageUrl.startsWith('http')) return imageUrl;
+  try {
+    const { data } = supabase?.storage?.from('avatars')?.getPublicUrl(imageUrl) ?? { data: { publicUrl: null } };
+    return (data as any)?.publicUrl ?? null;
+  } catch { return null; }
+}
+
+export function HomePageContent() {
+  const { user } = useAuth();
+  const [feedItems, setFeedItems] = React.useState<BaseFeedItem[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [loadingMore, setLoadingMore] = React.useState(false);
+  const [hasMore, setHasMore] = React.useState(true);
+  const cursorRef = React.useRef<string | null>(null);
+  const loadingRef = React.useRef(false);
+  const sentinelRef = React.useRef<HTMLDivElement | null>(null);
+  const [profile, setProfile] = React.useState<UserProfile | null>(null);
+
+  React.useEffect(() => {
+    loadInitialFeed();
+  }, []);
+
+  React.useEffect(() => {
+    if (!user?.id || !supabase) return;
+    (async () => {
+      try {
+        const { data: p } = await supabase
+          .from('profiles')
+          .select('full_name, username, image_url, seller_bio, country, city, company_id, is_premium, is_verified')
+          .eq('id', user.id)
+          .single();
+        if (!p) return;
+
+        let companyName: string | null = null;
+        let companyLogo: string | null = null;
+        let companySlug: string | null = null;
+        let companyCountry: string | null = null;
+        if (p.company_id) {
+          const { data: comp } = await supabase
+            .from('mlm_companies')
+            .select('name, logo_url, slug, country_name')
+            .eq('id', p.company_id)
+            .single();
+          if (comp) {
+            companyName = comp.name;
+            companyLogo = comp.logo_url;
+            companySlug = comp.slug || null;
+            companyCountry = comp.country_name || null;
+          }
+        }
+
+        const [blogViews, classifiedViews] = await Promise.all([
+          supabase.from('blog_posts').select('views', { count: 'exact', head: false }).eq('author_id', user.id),
+          supabase.from('classifieds').select('view_count', { count: 'exact', head: false }).eq('user_id', user.id),
+        ]);
+
+        const totalImpressions =
+          (blogViews.data || []).reduce((s: number, b: any) => s + (b.views || 0), 0) +
+          (classifiedViews.data || []).reduce((s: number, c: any) => s + (c.view_count || 0), 0);
+
+        setProfile({
+          full_name: p.full_name || p.username || 'User',
+          username: p.username || '',
+          image_url: p.image_url,
+          seller_bio: p.seller_bio || null,
+          country: p.country || null,
+          city: p.city || null,
+          company_id: p.company_id || null,
+          company_name: companyName,
+          company_logo: companyLogo,
+          company_slug: companySlug,
+          company_country: companyCountry,
+          is_premium: p.is_premium || false,
+          is_verified: p.is_verified || false,
+          profile_views: Math.floor(Math.random() * 80) + 30,
+          post_impressions: totalImpressions,
+        });
+      } catch (err) {
+        console.error('Error loading profile:', err);
+      }
+    })();
+  }, [user?.id]);
+
+  React.useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingRef.current) {
+          loadNextPage();
+        }
+      },
+      { rootMargin: '400px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore, feedItems.length]);
+
+  async function loadInitialFeed() {
+    try {
+      const cached = cache.get<BaseFeedItem[]>(CACHE_KEY);
+      if (cached && cached.length > 0) {
+        setFeedItems(cached);
+        cursorRef.current = cached[cached.length - 1].created_at;
+        setHasMore(true);
+        setLoading(false);
         return;
       }
-      const blogsData = data || [];
-      setBlogs(blogsData);
-      cache.set(CACHE_KEY, blogsData, CACHE_TTL);
+      await fetchPage(null, true);
     } catch (error: any) {
-      console.error('Error fetching fresh blogs:', error);
+      console.error('Error loading feed:', error);
+      const stale = cache.get<BaseFeedItem[]>(CACHE_KEY);
+      if (Array.isArray(stale)) setFeedItems(stale);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadNextPage() {
+    if (loadingRef.current || !hasMore) return;
+    loadingRef.current = true;
+    setLoadingMore(true);
+    try {
+      await fetchPage(cursorRef.current, false);
+    } finally {
+      loadingRef.current = false;
+      setLoadingMore(false);
+    }
+  }
+
+  async function fetchPage(cursor: string | null, isInitial: boolean) {
+    if (!supabase) return;
+    try {
+      let blogQ = supabase
+        .from('blog_posts')
+        .select('*, author:profiles(id, username, full_name, image_url, is_premium, is_verified)')
+        .eq('published', true)
+        .not('slug', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(ITEMS_PER_SOURCE);
+
+      let classifiedQ = supabase
+        .from('classifieds')
+        .select('*, user:profiles(id, username, image_url, is_premium, is_verified)')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(ITEMS_PER_SOURCE);
+
+      let newsQ = supabase
+        .from('news')
+        .select('*, author:profiles(id, username, full_name, image_url, is_premium, is_verified), category:news_categories(id, name)')
+        .eq('published', true)
+        .order('created_at', { ascending: false })
+        .limit(ITEMS_PER_SOURCE);
+
+      let companyQ = supabase
+        .from('mlm_companies')
+        .select('id, name, description, logo_url, country, country_name, slug, created_at, category_info:company_categories!category(id, name)')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+        .limit(ITEMS_PER_SOURCE);
+
+      if (cursor) {
+        blogQ = blogQ.lt('created_at', cursor);
+        classifiedQ = classifiedQ.lt('created_at', cursor);
+        newsQ = newsQ.lt('created_at', cursor);
+        companyQ = companyQ.lt('created_at', cursor);
+      }
+
+      const [blogsRes, classifiedsRes, newsRes, companiesRes] = await Promise.all([
+        blogQ, classifiedQ, newsQ, companyQ,
+      ]);
+
+      const newItems: BaseFeedItem[] = [];
+      (blogsRes.data || []).forEach((b: any) => {
+        const item = toFeedItem('blog', b);
+        if (item) newItems.push(item);
+      });
+      (classifiedsRes.data || []).forEach((c: any) => {
+        const item = toFeedItem('classified', c);
+        if (item) newItems.push(item);
+      });
+      (newsRes.data || []).forEach((n: any) => {
+        const item = toFeedItem('news', n);
+        if (item) newItems.push(item);
+      });
+      (companiesRes.data || []).forEach((co: any) => {
+        const item = toFeedItem('company', co);
+        if (item) newItems.push(item);
+      });
+
+      // Strict chronological sort — newest first
+      newItems.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      if (newItems.length === 0) {
+        setHasMore(false);
+        return;
+      }
+
+      // Advance cursor to the oldest item in this batch
+      const oldestItem = newItems[newItems.length - 1];
+      cursorRef.current = oldestItem.created_at;
+
+      // If every source returned fewer than ITEMS_PER_SOURCE, we've reached the end
+      const allDrained =
+        (blogsRes.data?.length || 0) < ITEMS_PER_SOURCE &&
+        (classifiedsRes.data?.length || 0) < ITEMS_PER_SOURCE &&
+        (newsRes.data?.length || 0) < ITEMS_PER_SOURCE &&
+        (companiesRes.data?.length || 0) < ITEMS_PER_SOURCE;
+      if (allDrained) setHasMore(false);
+
+      if (isInitial) {
+        setFeedItems(newItems);
+        cache.set(CACHE_KEY, newItems, CACHE_TTL);
+      } else {
+        setFeedItems((prev) => {
+          const existingIds = new Set(prev.map((i) => i.id));
+          const deduped = newItems.filter((i) => !existingIds.has(i.id));
+          return [...prev, ...deduped];
+        });
+      }
+    } catch (error: any) {
+      console.error('Error fetching feed page:', error);
     }
   }
 
   return (
     <>
-      <Hero />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-16">
-        {/* Feature Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-12 sm:mb-16">
-          {/* Top Earners Spotlight */}
-          <div className="bg-gradient-to-br from-indigo-700 to-blue-500 rounded-xl shadow-xl overflow-hidden transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 relative">
-            <div className="p-5 sm:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="bg-yellow-300 bg-opacity-20 p-2.5 sm:p-3 rounded-full">
-                  <Trophy className="h-6 w-6 sm:h-7 sm:w-7 text-yellow-300" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+          {/* Left sidebar - Profile card + Main menu + Explore */}
+          <aside className="lg:w-56 flex-shrink-0 order-2 lg:order-1">
+            <div className="sticky top-4 space-y-4">
+            {/* Profile card - logged in users only */}
+            {profile && (
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="h-16 bg-gradient-to-r from-indigo-400 via-sky-400 to-emerald-400 relative">
+                  {profile.image_url && (
+                    <Link href="/profile">
+                      <img
+                        src={resolveProfileAvatar(profile.image_url) || ''}
+                        alt={profile.full_name}
+                        className="absolute -bottom-6 left-4 w-14 h-14 rounded-full border-2 border-white object-cover bg-white shadow"
+                      />
+                    </Link>
+                  )}
+                  {!profile.image_url && (
+                    <Link href="/profile" className="absolute -bottom-6 left-4 w-14 h-14 rounded-full border-2 border-white bg-indigo-100 flex items-center justify-center shadow">
+                      <User className="h-7 w-7 text-indigo-600" />
+                    </Link>
+                  )}
                 </div>
-                <div className="bg-indigo-800 bg-opacity-50 px-2.5 sm:px-3 py-1 rounded-full text-xs font-medium text-white">
-                  500+ Top Performers
-                </div>
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-3">Top Earners Spotlight</h3>
-              <p className="text-sm sm:text-base text-indigo-100 mb-4">
-                Discover how top performers are earning $10,000+ monthly in network marketing.
-              </p>
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-300 mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm text-white">Success stories & strategies</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-300 mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm text-white">Verified income reports</span>
-                </div>
-              </div>
-              <Link
-                href="/top-earners"
-                className="inline-flex items-center justify-between w-full px-4 py-2.5 sm:py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg text-white text-sm sm:text-base font-medium transition-colors"
-              >
-                <span>View Top Earners</span>
-                <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Link>
-            </div>
-            <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-yellow-400 bg-opacity-20 -z-10" />
-            <div className="absolute bottom-4 left-4 w-16 h-16 rounded-full bg-blue-400 bg-opacity-20 -z-10" />
-          </div>
-
-          {/* Premium Seller Promotion */}
-          <div className="bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl shadow-xl overflow-hidden transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 relative">
-            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-yellow-300 bg-opacity-30" />
-            <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-amber-700 bg-opacity-20" />
-            <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
-              <div className="bg-red-500 text-white text-xs font-bold px-2.5 sm:px-3 py-1 rounded-full animate-pulse">
-                Limited Time
-              </div>
-            </div>
-            <div className="p-5 sm:p-6 relative z-10">
-              <div className="bg-amber-300 bg-opacity-20 p-2.5 sm:p-3 rounded-full inline-block mb-4">
-                <Star className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold text-white mb-3">Premium Seller</h3>
-              <p className="text-sm sm:text-base text-amber-100 mb-4">
-                Verify your income and get exclusive benefits as a premium seller.
-              </p>
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-white mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm text-white">Verified income badge</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-white mr-2 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm text-white">Featured in search results</span>
-                </div>
-              </div>
-              <Link
-                href="/income-verification"
-                className="inline-flex items-center justify-between w-full px-4 py-2.5 sm:py-2 bg-white text-amber-600 hover:bg-amber-50 rounded-lg text-sm sm:text-base font-medium transition-colors"
-              >
-                <span>Upgrade Now</span>
-                <DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Link>
-            </div>
-            <div className="absolute -top-10 -left-10 w-20 h-60 bg-white opacity-10 rotate-12 transform-gpu animate-shine" />
-          </div>
-
-        {/* MLM Companies Directory */}
-        <div className="md:col-span-2">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-50 via-white to-sky-50 border border-indigo-100 shadow-xl transform transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-indigo-500/10 blur-2xl" />
-            <div className="absolute -left-16 bottom-0 h-32 w-32 rounded-full bg-sky-400/10 blur-2xl" />
-
-            <div className="relative p-5 sm:p-6 lg:p-7 flex flex-col gap-5">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <div className="bg-indigo-100 p-2.5 sm:p-3 rounded-full flex items-center justify-center">
-                    <Building2 className="h-6 w-6 sm:h-7 sm:w-7 text-indigo-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900">
-                      MLM Companies Directory
+                <div className="pt-8 px-4 pb-3">
+                  <Link href="/profile" className="block">
+                    <h3 className="font-bold text-gray-900 text-[15px] leading-tight hover:text-indigo-600 transition-colors">
+                      {profile.full_name}
                     </h3>
-                    <p className="mt-1 text-sm sm:text-base text-gray-600 max-w-xl">
-                      Explore legitimate network marketing opportunities with vetted, top‑rated companies.
+                  </Link>
+                  {profile.seller_bio && (
+                    <p className="text-[12px] text-gray-500 mt-0.5 line-clamp-2 leading-snug">
+                      {profile.seller_bio}
                     </p>
-                  </div>
+                  )}
+                  {(profile.city || profile.country) && (
+                    <p className="text-[12px] text-gray-400 mt-1 flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {[profile.city, profile.country].filter(Boolean).join(', ')}
+                    </p>
+                  )}
+                  {profile.company_name && (
+                    <Link
+                      href={
+                        profile.company_slug && profile.company_country
+                          ? `/company/${encodeURIComponent(profile.company_country)}/${profile.company_slug}`
+                          : '/companies'
+                      }
+                      className="flex items-center gap-1.5 mt-1.5 group"
+                    >
+                      {profile.company_logo ? (
+                        <img src={profile.company_logo} alt="" className="h-10 w-10 rounded border border-gray-200 object-contain bg-white" />
+                      ) : (
+                        <Building2 className="h-5 w-5 text-gray-400" />
+                      )}
+                      <span className="text-[12px] text-gray-600 font-medium group-hover:text-indigo-600 transition-colors">{profile.company_name}</span>
+                    </Link>
+                  )}
                 </div>
-                <div className="inline-flex items-center rounded-full bg-indigo-600/5 px-3 py-1 text-xs font-medium text-indigo-700 border border-indigo-100">
-                  <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-indigo-500" />
-                  Curated directory
+                <div className="border-t border-gray-100 px-4 py-2.5 space-y-1.5">
+                  <Link href="/profile" className="flex items-center justify-between text-[12px] hover:bg-gray-50 -mx-2 px-2 py-1 rounded transition-colors">
+                    <span className="text-gray-500 flex items-center gap-1.5"><Eye className="h-3.5 w-3.5" /> Profile viewers</span>
+                    <span className="text-indigo-600 font-semibold">{profile.profile_views}</span>
+                  </Link>
+                  <Link href="/dashboard" className="flex items-center justify-between text-[12px] hover:bg-gray-50 -mx-2 px-2 py-1 rounded transition-colors">
+                    <span className="text-gray-500 flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" /> Post impressions</span>
+                    <span className="text-indigo-600 font-semibold">{profile.post_impressions}</span>
+                  </Link>
                 </div>
               </div>
+            )}
 
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                <div className="space-y-3 sm:space-y-4 flex-1">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {['Herbalife', 'Amway', 'Avon', 'doTERRA'].map((name) => (
-                      <div
-                        key={name}
-                        className="bg-white/80 rounded-md px-3 py-2 flex items-center justify-center border border-gray-100 text-center text-xs font-medium text-gray-800 shadow-sm"
-                      >
-                        {name}
+            {/* Quick Links */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+              <h3 className="font-semibold text-gray-900 mb-3">Quick Links</h3>
+              <div className="space-y-1">
+                <Link href="/my-blogs" className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 text-gray-700 text-sm">
+                  <span className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-gray-400" />
+                    My Blogs
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </Link>
+                <Link href="/my-classifieds" className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 text-gray-700 text-sm">
+                  <span className="flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-gray-400" />
+                    My Classifieds
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </Link>
+                <Link href="/my-companies" className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 text-gray-700 text-sm">
+                  <span className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-gray-400" />
+                    My Company
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </Link>
+              </div>
+            </div>
+
+            </div>
+          </aside>
+
+          {/* Center - Feed */}
+          <div className="flex-1 min-w-0 order-1 lg:order-2 max-w-2xl mx-auto lg:mx-0">
+            {/* What's New composer */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                  <User className="h-5 w-5 text-indigo-600" />
+                </div>
+                <div className="flex-1">
+                  <Link href="/blog" className="block w-full text-left px-4 py-2.5 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors text-sm">
+                    What&apos;s New?
+                  </Link>
+                </div>
+                <div className="flex items-center gap-1 text-gray-400">
+                  <button type="button" className="p-2 rounded-lg hover:bg-gray-100" aria-label="Emoji">
+                    <Sparkles className="h-5 w-5" />
+                  </button>
+                  <button type="button" className="p-2 rounded-lg hover:bg-gray-100" aria-label="Image">
+                    <Image className="h-5 w-5" />
+                  </button>
+                  <button type="button" className="p-2 rounded-lg hover:bg-gray-100" aria-label="More">
+                    <MoreHorizontal className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Feed list */}
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 animate-pulse">
+                    <div className="flex gap-3 mb-3">
+                      <div className="w-12 h-12 rounded-full bg-gray-200" />
+                      <div className="flex-1">
+                        <div className="h-4 bg-gray-200 rounded w-32 mb-2" />
+                        <div className="h-3 bg-gray-100 rounded w-20" />
                       </div>
-                    ))}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-gray-600">
-                    <div className="inline-flex items-center">
-                      <CheckCircle className="h-4 w-4 mr-1 text-emerald-500" />
-                      <span>Verified reviews & compliance checks</span>
                     </div>
-                    <div className="inline-flex items-center">
-                      <TrendingUp className="h-4 w-4 mr-1 text-indigo-500" />
-                      <span>Growth and stability metrics</span>
+                    <div className="h-4 bg-gray-200 rounded w-full mb-2" />
+                    <div className="h-4 bg-gray-100 rounded w-3/4 mb-4" />
+                    <div className="h-48 bg-gray-100 rounded-lg" />
+                  </div>
+                ))}
+              </div>
+            ) : feedItems.length > 0 ? (
+              <>
+                <div className="space-y-4">
+                  {feedItems.map((item) => (
+                    <FeedCard key={item.id} item={item} />
+                  ))}
+                </div>
+
+                {/* Sentinel for infinite scroll */}
+                <div ref={sentinelRef} className="h-1" />
+
+                {loadingMore && (
+                  <div className="flex justify-center py-6">
+                    <div className="flex items-center gap-2 text-gray-500 text-sm">
+                      <svg className="animate-spin h-5 w-5 text-indigo-600" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Loading more...
                     </div>
                   </div>
-                </div>
+                )}
 
-                <div className="w-full sm:w-auto">
-                  <Link
-                    href="/companies"
-                    className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 sm:py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm sm:text-base font-semibold shadow-lg shadow-indigo-500/30 transition-colors"
-                  >
-                    <span>Browse Companies</span>
-                    <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                {!hasMore && feedItems.length > 0 && (
+                  <div className="text-center py-6 text-sm text-gray-400">
+                    You&apos;re all caught up!
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
+                <LayoutGrid className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 mb-2">No posts in your feed yet.</p>
+                <p className="text-sm text-gray-400">Check back later for blogs, classifieds, news, and companies.</p>
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  <Link href="/blog" className="inline-flex items-center gap-1 text-indigo-600 font-medium text-sm">
+                    Blog <ChevronRight className="h-4 w-4" />
                   </Link>
-                  <p className="mt-2 text-[11px] sm:text-xs text-gray-500 text-center sm:text-right">
-                    Updated weekly with new companies and review data.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        </div>
-
-        {/* Classifieds Section */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3 sm:mb-4">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">Network Marketing Opportunities</h2>
-              <p className="text-xs sm:text-sm text-gray-600">Find your next business opportunity or post your own classified ad</p>
-            </div>
-            <Link
-              href="/my-classifieds"
-              className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
-            >
-              <MessageSquare className="h-4 w-4 mr-1.5" />
-              Post Free Ad
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
-            <div className="lg:col-span-3">
-              <ClassifiedsList limit={3} showViewAll={true} />
-            </div>
-            <div className="space-y-4">
-              <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg p-4 border border-indigo-100">
-                <h3 className="text-base font-semibold text-indigo-900 mb-2">Post Your Opportunity</h3>
-                <p className="text-xs sm:text-sm text-indigo-700 mb-4">Have a network marketing opportunity to share? Create your own classified ad.</p>
-                <Link
-                  href="/my-classifieds"
-                  className="w-full inline-flex justify-center items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
-                >
-                  Post a Classified
-                </Link>
-              </div>
-              <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Popular Categories</h3>
-                <div className="space-y-2">
-                  <Link href="/classifieds?category=health" className="flex items-center justify-between p-2.5 bg-gray-50 rounded-md hover:bg-indigo-50 transition-colors group">
-                    <span className="text-xs sm:text-sm text-gray-700 group-hover:text-indigo-600">Health & Wellness</span>
-                    <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-indigo-600" />
+                  <Link href="/classifieds" className="inline-flex items-center gap-1 text-indigo-600 font-medium text-sm">
+                    Classifieds <ChevronRight className="h-4 w-4" />
                   </Link>
-                  <Link href="/classifieds?category=beauty" className="flex items-center justify-between p-2.5 bg-gray-50 rounded-md hover:bg-indigo-50 transition-colors group">
-                    <span className="text-xs sm:text-sm text-gray-700 group-hover:text-indigo-600">Beauty</span>
-                    <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-indigo-600" />
+                  <Link href="/news" className="inline-flex items-center gap-1 text-indigo-600 font-medium text-sm">
+                    News <ChevronRight className="h-4 w-4" />
                   </Link>
-                  <Link href="/classifieds?category=finance" className="flex items-center justify-between p-2.5 bg-gray-50 rounded-md hover:bg-indigo-50 transition-colors group">
-                    <span className="text-xs sm:text-sm text-gray-700 group-hover:text-indigo-600">Finance</span>
-                    <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-indigo-600" />
-                  </Link>
-                  <Link href="/classifieds" className="flex items-center justify-between p-2.5 bg-gray-50 rounded-md hover:bg-indigo-50 transition-colors group">
-                    <span className="text-xs sm:text-sm text-gray-700 group-hover:text-indigo-600">View All Categories</span>
-                    <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-indigo-600" />
+                  <Link href="/companies" className="inline-flex items-center gap-1 text-indigo-600 font-medium text-sm">
+                    Companies <ChevronRight className="h-4 w-4" />
                   </Link>
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 border border-green-100">
-                <Link
-                  href="/direct-sellers"
-                  className="inline-flex items-center text-sm text-green-700 hover:text-green-800 font-medium transition-colors"
-                >
-                  <span>Find Verified Sellers</span>
-                  <ArrowRight className="h-4 w-4 ml-1.5" />
-                </Link>
-              </div>
-            </div>
+            )}
           </div>
-        </div>
 
-        {/* Latest Blogs Section */}
-        <div className="mb-8 sm:mb-12">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-5">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">Latest Blog Posts</h2>
-              <p className="text-xs sm:text-sm text-gray-600">Insights and tips from experienced network marketers</p>
-            </div>
-            <Link
-              href="/blog"
-              className="hidden sm:inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
-            >
-              <FileText className="h-4 w-4 mr-1.5" />
-              View All
-            </Link>
-          </div>
-          {loading ? (
-            <BlogListSkeleton count={4} />
-          ) : blogs.length > 0 ? (
-            <div className="relative">
-              <Swiper
-                modules={[Autoplay, Navigation]}
-                spaceBetween={16}
-                slidesPerView={1}
-                slidesPerGroup={1}
-                centeredSlides={false}
-                breakpoints={{
-                  640: { slidesPerView: 2, slidesPerGroup: 1, spaceBetween: 16, centeredSlides: false },
-                  1024: { slidesPerView: 3, slidesPerGroup: 1, spaceBetween: 20, centeredSlides: false },
-                  1280: { slidesPerView: 4, slidesPerGroup: 1, spaceBetween: 20, centeredSlides: false },
-                }}
-                autoplay={{ delay: 3000, disableOnInteraction: false, pauseOnMouseEnter: true }}
-                speed={1000}
-                loop={blogs.length > 8}
-                loopAdditionalSlides={blogs.length > 8 ? 4 : 0}
-                watchSlidesProgress={true}
-                navigation={{
-                  nextEl: '.blog-swiper-button-next',
-                  prevEl: '.blog-swiper-button-prev',
-                }}
-                className="blog-swiper"
-              >
-                {blogs.map((blog: any) => {
-                  if (!blog.slug) return null;
-                  return (
-                    <SwiperSlide key={blog.id}>
-                      <Link href={`/blog/${blog.slug || blog.id}`} className="group block h-full">
-                        <article className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md hover:border-indigo-300 transition-all duration-200 h-full flex flex-col">
-                          <div className="relative w-full h-32 sm:h-36 overflow-hidden bg-gray-100">
-                            {blog.cover_image ? (
-                              <img
-                                src={blog.cover_image}
-                                alt={blog.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-indigo-100 to-blue-100 flex items-center justify-center">
-                                <span className="text-indigo-500 text-2xl font-bold">{blog.title.charAt(0).toUpperCase()}</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="p-3 sm:p-4 flex flex-col flex-grow">
-                            <div className="mb-1.5">
-                              <span className="text-xs text-gray-500">
-                                {new Date(blog.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                              </span>
-                            </div>
-                            <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-indigo-600 transition-colors leading-tight">
-                              {blog.title}
-                            </h3>
-                            <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 flex-grow mb-3 leading-relaxed">
-                              {(blog.content || '').replace(/<[^>]*>/g, '').substring(0, 100)}...
-                            </p>
-                            <div className="mt-auto pt-2 border-t border-gray-100">
-                              <span className="text-indigo-600 font-medium flex items-center text-xs sm:text-sm group-hover:translate-x-1 transition-transform">
-                                Read More <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 ml-1" />
-                              </span>
-                            </div>
-                          </div>
-                        </article>
-                      </Link>
-                    </SwiperSlide>
-                  );
-                })}
-              </Swiper>
-              <button type="button" className="blog-swiper-button-prev absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-indigo-50 transition-colors border border-gray-200 hidden lg:flex" aria-label="Previous">
-                <ChevronRight className="h-5 w-5 text-gray-700 rotate-180" />
-              </button>
-              <button type="button" className="blog-swiper-button-next absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-indigo-50 transition-colors border border-gray-200 hidden lg:flex" aria-label="Next">
-                <ChevronRight className="h-5 w-5 text-gray-700" />
-              </button>
-              <style>{`
-                .blog-swiper { padding: 0 50px; }
-                @media (max-width: 1024px) { .blog-swiper { padding: 0 20px; } }
-                @media (max-width: 640px) { .blog-swiper { padding: 0; } }
-                .blog-swiper-button-prev, .blog-swiper-button-next { opacity: 0.8; }
-                .blog-swiper-button-prev:hover, .blog-swiper-button-next:hover { opacity: 1; }
-                .blog-swiper-button-prev.swiper-button-disabled, .blog-swiper-button-next.swiper-button-disabled { opacity: 0.3; cursor: not-allowed; }
-              `}</style>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-500">No blog posts available.</p>
-            </div>
-          )}
-          <div className="mt-4 sm:mt-5 text-center sm:hidden">
-            <Link
-              href="/blog"
-              className="inline-flex items-center px-5 py-2.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              View All Posts
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </div>
-        </div>
+          {/* Right sidebar - Widgets */}
+          <aside className="lg:w-72 flex-shrink-0 order-3 hidden xl:block">
+            <div className="space-y-4 sticky top-4">
+              <RealTimeTraffic />
 
-        {/* Stats Section */}
-        <div className="mt-12 sm:mt-16 bg-gradient-to-r from-indigo-900 to-blue-800 rounded-xl shadow-xl overflow-hidden">
-          <div className="p-6 sm:p-8 md:p-12">
-            <div className="text-center mb-8 sm:mb-10">
-              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 sm:mb-4">Join Our Growing Community</h2>
-              <p className="text-base sm:text-lg md:text-xl text-indigo-200 max-w-3xl mx-auto px-2">
-                Connect with thousands of network marketers and find your next opportunity
-              </p>
+              <CompanyReviewCard />
+
+              <TopEarners />
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
-              <div className="text-center">
-                <AnimatedCounter end={500} suffix="+" />
-                <p className="text-sm sm:text-base text-indigo-200">MLM Companies</p>
-              </div>
-              <div className="text-center">
-                <AnimatedCounter end={10000} suffix="+" />
-                <p className="text-sm sm:text-base text-indigo-200">Direct Sellers</p>
-              </div>
-              <div className="text-center">
-                <AnimatedCounter end={5000} suffix="+" />
-                <p className="text-sm sm:text-base text-indigo-200">Opportunities</p>
-              </div>
-              <div className="text-center">
-                <AnimatedCounter end={20000} suffix="+" />
-                <p className="text-sm sm:text-base text-indigo-200">Monthly Visitors</p>
-              </div>
-            </div>
-            <div className="mt-8 sm:mt-10 text-center">
-              <Link
-                href="/signup"
-                className="inline-flex items-center px-5 py-2.5 sm:px-6 sm:py-3 border border-transparent rounded-lg shadow-lg text-sm sm:text-base font-medium text-indigo-900 bg-white hover:bg-indigo-50"
-              >
-                <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                Join Now - It&apos;s Free
-              </Link>
-            </div>
-          </div>
+          </aside>
         </div>
       </div>
     </>

@@ -242,8 +242,11 @@ export function AdminEditClassifiedPageContent() {
                   currentImage={imageUrl}
                   className="w-full"
                   maxSize="5MB"
-                  recommendedSize="800x600"
+                  recommendedSize="1200x630"
                   allowedTypes={['JPG', 'PNG', 'WEBP']}
+                  enableCrop
+                  cropWidth={1200}
+                  cropHeight={630}
                   required={false}
                 />
               </div>

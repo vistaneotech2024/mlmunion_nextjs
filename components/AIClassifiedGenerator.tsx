@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react';
+import Image from 'next/image';
 import { X, Sparkles, Loader2 } from 'lucide-react';
 import { generateClassifiedDescription } from '../lib/openai';
 import { RichTextEditor } from './RichTextEditor';
@@ -21,6 +22,13 @@ export function AIClassifiedGenerator({ isOpen, onClose, onGenerated }: AIClassi
   const [generatedMetaDescription, setGeneratedMetaDescription] = React.useState('');
   const [generatedMetaKeywords, setGeneratedMetaKeywords] = React.useState('');
   const [generatedFocusKeyword, setGeneratedFocusKeyword] = React.useState('');
+  const languageOptions = [
+    'English', 'Hindi', 'Spanish', 'French', 'German', 'Portuguese', 'Indonesian',
+    'Urdu', 'Arabic', 'Bengali', 'Chinese', 'Russian', 'Japanese', 'Korean', 'Turkish', 'Italian', 'Vietnamese',
+    'Other',
+  ] as const;
+  type LanguageOption = (typeof languageOptions)[number];
+  const [language, setLanguage] = React.useState<LanguageOption>('English');
   const [loading, setLoading] = React.useState(false);
   const [step, setStep] = React.useState<'input' | 'generated'>('input');
 
@@ -37,11 +45,12 @@ export function AIClassifiedGenerator({ isOpen, onClose, onGenerated }: AIClassi
 
     try {
       setLoading(true);
-      console.log('Starting AI generation with:', { title: title.trim() || 'Auto-generate', shortDescription: shortDescription.trim() });
+      console.log('Starting AI generation with:', { title: title.trim() || 'Auto-generate', shortDescription: shortDescription.trim(), language });
       
       const result = await generateClassifiedDescription({
         title: title.trim() || undefined,
-        shortDescription: shortDescription.trim()
+        shortDescription: shortDescription.trim(),
+        language,
       });
       
       console.log('AI generation successful:', result);
@@ -108,7 +117,51 @@ export function AIClassifiedGenerator({ isOpen, onClose, onGenerated }: AIClassi
         />
 
         {/* Modal panel */}
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+        <div className="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+          {loading && (
+            <div
+              className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-md vista-ai-loader"
+              role="status"
+              aria-live="polite"
+              aria-label="Generating classified"
+            >
+              <div className="flex flex-col items-center gap-4 px-6 py-8 rounded-lg bg-white/90 border border-gray-200 shadow-lg">
+                <div className="w-20 h-20 flex items-center justify-center">
+                  <Image
+                    src="/mlm_union.png"
+                    alt="MLM Union"
+                    width={80}
+                    height={80}
+                    className="object-contain"
+                    priority
+                  />
+                </div>
+
+                <div className="flex flex-col items-center gap-3">
+                  <div className="wrapper" aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <div className="text-sm font-semibold text-purple-700">Generating your classified…</div>
+                </div>
+
+                <div className="text-xs text-gray-600">
+                  AI Powered by <span className="font-semibold text-gray-800">Vista Neotech Private Limited</span>
+                </div>
+                <a
+                  href="https://vistaneotech.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:underline"
+                >
+                  Visit vistaneotech.com →
+                </a>
+              </div>
+            </div>
+          )}
           <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -139,6 +192,27 @@ export function AIClassifiedGenerator({ isOpen, onClose, onGenerated }: AIClassi
                   />
                   <p className="mt-1 text-xs text-gray-500">
                     Leave empty to let AI generate an SEO-optimized title (60-70 characters)
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Language
+                  </label>
+                  <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value as LanguageOption)}
+                    disabled={loading}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                  >
+                    {languageOptions.map((lang) => (
+                      <option key={lang} value={lang}>
+                        {lang === 'Other' ? 'Other (follow topic language)' : lang}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">
+                    The classified title and description will be generated in this language.
                   </p>
                 </div>
 

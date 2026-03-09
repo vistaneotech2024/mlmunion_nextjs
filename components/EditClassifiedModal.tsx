@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { ImageUpload } from './ImageUpload';
 import { RichTextEditor } from './RichTextEditor';
 import { handleSupabaseError } from '@/lib/supabase';
+import { generateEnglishSlugFromTitle } from '@/lib/openai';
 import { triggerSitemapRegeneration } from '../lib/sitemap';
 import { X } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -133,13 +134,28 @@ export function EditClassifiedModal({ isOpen, onClose, classifiedId, onSuccess }
   }
 
   const generateSlug = (title: string): string => {
-    let slug = title.toLowerCase()
+    const normalized = title
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^\x00-\x7F]/g, ' ');
+    let slug = normalized
+      .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
     slug = slug.replace(/^-+|-+$/g, '');
-    return slug;
+    return slug || 'classified';
+  };
+
+  const generateFinalSlug = async (title: string, metaDescription?: string): Promise<string> => {
+    try {
+      const aiSlug = await generateEnglishSlugFromTitle(title, metaDescription);
+      if (aiSlug) return aiSlug;
+    } catch (error) {
+      console.error('Error generating AI slug for classified:', error);
+    }
+    return generateSlug(title);
   };
 
   const onSubmit = async (data: ClassifiedFormData) => {
@@ -153,7 +169,7 @@ export function EditClassifiedModal({ isOpen, onClose, classifiedId, onSuccess }
       isSubmittingRef.current = true;
       setSaving(true);
       
-      const slug = generateSlug(data.title);
+      const slug = await generateFinalSlug(data.title, data.meta_description);
       
       const { error } = await supabase
         .from('classifieds')
@@ -226,8 +242,11 @@ export function EditClassifiedModal({ isOpen, onClose, classifiedId, onSuccess }
                     currentImage={imageUrl}
                     className="w-full"
                     maxSize="5MB"
-                    recommendedSize="800x600"
+                    recommendedSize="1200x630"
                     allowedTypes={["JPG", "PNG", "WEBP"]}
+                    enableCrop
+                    cropWidth={1200}
+                    cropHeight={630}
                     required={false}
                   />
                 </div>
