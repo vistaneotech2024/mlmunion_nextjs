@@ -37,6 +37,19 @@ interface Blog {
   focus_keyword?: string | null;
 }
 
+interface BlogComment {
+  id: string;
+  content: string;
+  created_at: string;
+  user: {
+    id: string;
+    username: string | null;
+    full_name: string | null;
+    image_url: string | null;
+    avatar_url: string | null;
+  } | null;
+}
+
 function BlogCoverFallback({ title }: { title: string }) {
   return (
     <div className="relative w-full h-48 sm:h-64 md:h-96 mb-4 md:mb-6 overflow-hidden rounded-lg bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center px-4 sm:px-6">
@@ -71,6 +84,13 @@ export function BlogDetailsPageContent({ slug }: Props) {
   const { categories } = useCachedBlogCategories();
   const [latestBlogs, setLatestBlogs] = React.useState<Blog[]>([]);
   const userId = user?.id;
+
+  const [comments, setComments] = React.useState<BlogComment[]>([]);
+  const [commentsLoading, setCommentsLoading] = React.useState(false);
+  const [newComment, setNewComment] = React.useState('');
+  const [submittingComment, setSubmittingComment] = React.useState(false);
+  const commentInputRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const commentsSectionRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
     if (slug) loadBlog(slug);
@@ -144,6 +164,9 @@ export function BlogDetailsPageContent({ slug }: Props) {
       })();
 
       setBlog(mapped);
+      if ((data as any).id) {
+        loadComments((data as any).id);
+      }
 
       const promises: Promise<any>[] = [];
       if ((data as any).category) {
@@ -160,6 +183,76 @@ export function BlogDetailsPageContent({ slug }: Props) {
       router.push('/blog');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadComments(blogId: string) {
+    if (!supabase) return;
+    try {
+      setCommentsLoading(true);
+      const { data, error } = await supabase
+        .from('blog_comments')
+        .select('id, content, created_at, user:profiles(id, username, full_name, image_url, avatar_url)')
+        .eq('blog_id', blogId)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      const mapped = (data || []).map((c: any) => ({
+        ...c,
+        user: Array.isArray(c.user) ? c.user[0] : c.user,
+      })) as BlogComment[];
+      setComments(mapped);
+    } catch (e) {
+      console.error('Error loading comments:', e);
+    } finally {
+      setCommentsLoading(false);
+    }
+  }
+
+  // If URL has #comments (from feed comment icon), scroll and focus input
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.location.hash !== '#comments') return;
+    const el = commentsSectionRef.current;
+    if (!el) return;
+    setTimeout(() => {
+      const rect = el.getBoundingClientRect();
+      const offset = window.scrollY + rect.top - 80;
+      window.scrollTo({ top: offset, behavior: 'smooth' });
+      commentInputRef.current?.focus();
+    }, 200);
+  }, []);
+
+  async function submitComment() {
+    if (!blog?.id || !supabase) return;
+    const text = newComment.trim();
+    if (!text) return;
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    try {
+      setSubmittingComment(true);
+      const { error } = await supabase.from('blog_comments').insert({
+        blog_id: blog.id,
+        user_id: user.id,
+        content: text,
+      });
+      if (error) throw error;
+      setNewComment('');
+      await loadComments(blog.id);
+      // Award points for commenting (best-effort)
+      try {
+        await supabase.rpc('award_points', { user_id: user.id, points: 2, action: 'blog_comment' });
+      } catch {
+        // ignore
+      }
+    } catch (e: any) {
+      const msg = handleSupabaseError(e, 'Failed to post comment');
+      toast.error(msg);
+    } finally {
+      setSubmittingComment(false);
     }
   }
 
@@ -430,6 +523,94 @@ export function BlogDetailsPageContent({ slug }: Props) {
                       text={blog.content.replace(/<[^>]*>/g, '').substring(0, 100) + '...'}
                       url={typeof window !== 'undefined' ? window.location.href : ''}
                     />
+                  </div>
+                </div>
+
+                {/* Comments */}
+                <div id="comments" ref={commentsSectionRef} className="border-t mt-5 pt-5">
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <h2 className="text-base md:text-lg font-bold text-gray-900">
+                      Comments {comments.length ? `(${comments.length})` : ''}
+                    </h2>
+                    <button
+                      type="button"
+                      onClick={() => blog?.id && loadComments(blog.id)}
+                      className="text-sm font-semibold text-indigo-700 hover:text-indigo-800"
+                    >
+                      Refresh
+                    </button>
+                  </div>
+
+                  <div className="bg-white border border-gray-200 rounded-none p-3 md:p-4">
+                    <textarea
+                      ref={commentInputRef}
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder={user ? 'Write a comment…' : 'Login to write a comment…'}
+                      disabled={!user || submittingComment}
+                      className="w-full min-h-[90px] rounded-none border border-gray-200 px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                      maxLength={2000}
+                    />
+                    <div className="mt-2 flex items-center justify-between gap-3">
+                      <span className="text-xs text-gray-400">{newComment.trim().length}/2000</span>
+                      <button
+                        type="button"
+                        onClick={submitComment}
+                        disabled={!user || submittingComment || newComment.trim().length === 0}
+                        className="inline-flex items-center justify-center px-4 py-2 rounded-none bg-indigo-700 hover:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold"
+                      >
+                        {submittingComment ? 'Posting…' : 'Post Comment'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 space-y-3">
+                    {commentsLoading ? (
+                      <div className="space-y-2">
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className="h-16 bg-gray-50 border border-gray-200 rounded-none animate-pulse" />
+                        ))}
+                      </div>
+                    ) : comments.length === 0 ? (
+                      <div className="text-sm text-gray-500">No comments yet. Be the first to comment.</div>
+                    ) : (
+                      comments.map((c) => {
+                        const u = c.user;
+                        const name = u?.full_name || u?.username || 'User';
+                        const avatar =
+                          u?.image_url ||
+                          u?.avatar_url ||
+                          (u?.username ? `https://ui-avatars.com/api/?name=${encodeURIComponent(u.username)}&background=6366f1&color=fff&size=128` : null);
+                        return (
+                          <div key={c.id} className="bg-white border border-gray-200 rounded-none p-3 md:p-4">
+                            <div className="flex items-start gap-3">
+                              {avatar ? (
+                                <img
+                                  src={avatar}
+                                  alt={name}
+                                  className="w-10 h-10 rounded-full object-cover border border-gray-200 bg-white flex-shrink-0"
+                                />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center flex-shrink-0">
+                                  <span className="text-indigo-700 font-bold">{name.charAt(0).toUpperCase()}</span>
+                                </div>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <p className="font-semibold text-gray-900 truncate">{name}</p>
+                                  <span className="text-xs text-gray-400">
+                                    {new Date(c.created_at).toLocaleString()}
+                                  </span>
+                                </div>
+                                <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap break-words">
+                                  {c.content}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
               </article>

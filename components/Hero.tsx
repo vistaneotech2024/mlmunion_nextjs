@@ -174,7 +174,9 @@ export function Hero() {
         }}
         autoplay={{ delay: 5000 }}
         className="h-[400px] sm:h-[500px] md:h-[600px]"
+        
       >
+
         {banners.map((banner) => (
           <SwiperSlide key={banner.id}>
             <div className="relative h-full">

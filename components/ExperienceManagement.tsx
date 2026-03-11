@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import DatePicker from 'react-datepicker';
 import { supabase } from '@/lib/supabase';
 import { Plus, Edit, Trash2, Calendar, Briefcase, FileText, X, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -123,39 +124,18 @@ export function ExperienceManagement({ userId, isEditable = true }: ExperienceMa
     setShowAddForm(false);
   };
 
-  // Helper function to convert YYYY-MM-DD format to YYYY-MM format for month input
-  const convertDateToMonth = (dateValue: string): string => {
-    if (!dateValue) return '';
-    // If already in YYYY-MM format, return as is
-    if (dateValue.match(/^\d{4}-\d{2}$/)) {
-      return dateValue;
-    }
-    // Convert YYYY-MM-DD to YYYY-MM
-    return dateValue.substring(0, 7);
-  };
-
   const handleEdit = (experience: Experience) => {
     setFormData({
       title: experience.title,
       company: experience.company || '',
       description: experience.description || '',
-      start_date: convertDateToMonth(experience.start_date),
-      end_date: experience.end_date ? convertDateToMonth(experience.end_date) : null,
+      // keep full date (YYYY-MM-DD) so we can show exact day
+      start_date: experience.start_date,
+      end_date: experience.end_date || null,
       is_current: experience.is_current,
     });
     setEditingId(experience.id || null);
     setShowAddForm(true);
-  };
-
-  // Helper function to convert YYYY-MM format to YYYY-MM-01 (first day of month)
-  const convertMonthToDate = (monthValue: string): string => {
-    if (!monthValue) return '';
-    // If already in YYYY-MM-DD format, return as is
-    if (monthValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      return monthValue;
-    }
-    // Convert YYYY-MM to YYYY-MM-01
-    return `${monthValue}-01`;
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -179,9 +159,9 @@ export function ExperienceManagement({ userId, isEditable = true }: ExperienceMa
       return;
     }
 
-    // Convert month inputs to proper date format
-    const startDate = convertMonthToDate(formData.start_date);
-    const endDate = formData.end_date ? convertMonthToDate(formData.end_date) : null;
+    // Dates are stored as full YYYY-MM-DD strings
+    const startDate = formData.start_date;
+    const endDate = formData.end_date || null;
 
     if (endDate && startDate > endDate) {
       toast.error('End date must be after start date');
@@ -508,20 +488,64 @@ export function ExperienceManagement({ userId, isEditable = true }: ExperienceMa
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Start Date <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="month"
-                  value={formData.start_date}
-                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                <DatePicker
+                  selected={formData.start_date ? new Date(formData.start_date) : null}
+                  onChange={(date: Date | null) => {
+                    const value = date ? date.toISOString().substring(0, 10) : '';
+                    setFormData({ ...formData, start_date: value });
+                  }}
+                  onKeyDown={(e) => {
+                    const allowedKeys = [
+                      'Backspace',
+                      'Tab',
+                      'ArrowLeft',
+                      'ArrowRight',
+                      'Delete',
+                      'Home',
+                      'End',
+                      '-',
+                    ];
+                    if (
+                      !/[0-9]/.test(e.key) &&
+                      !allowedKeys.includes(e.key)
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
+                  dateFormat="yyyy-MM-dd"
+                  placeholderText="YYYY-MM-DD"
                   className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                <input
-                  type="month"
-                  value={formData.end_date || ''}
-                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value || null })}
+                <DatePicker
+                  selected={formData.end_date ? new Date(formData.end_date) : null}
+                  onChange={(date: Date | null) => {
+                    const value = date ? date.toISOString().substring(0, 10) : null;
+                    setFormData({ ...formData, end_date: value });
+                  }}
+                  onKeyDown={(e) => {
+                    const allowedKeys = [
+                      'Backspace',
+                      'Tab',
+                      'ArrowLeft',
+                      'ArrowRight',
+                      'Delete',
+                      'Home',
+                      'End',
+                      '-',
+                    ];
+                    if (
+                      !/[0-9]/.test(e.key) &&
+                      !allowedKeys.includes(e.key)
+                    ) {
+                      e.preventDefault();
+                    }
+                  }}
+                  dateFormat="yyyy-MM-dd"
+                  placeholderText="YYYY-MM-DD"
                   disabled={formData.is_current}
                   className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />

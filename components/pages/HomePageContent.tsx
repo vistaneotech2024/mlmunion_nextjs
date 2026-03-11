@@ -357,7 +357,12 @@ interface SuggestCompany {
 
 function CompanyReviewCard() {
   const [company, setCompany] = React.useState<SuggestCompany | null>(null);
+  const [pool, setPool] = React.useState<SuggestCompany[]>([]);
+  const [idx, setIdx] = React.useState(0);
+  const [slideDir, setSlideDir] = React.useState<'next' | 'prev'>('next');
+  const actionDirRef = React.useRef<'next' | 'prev'>('next');
   const [logoOk, setLogoOk] = React.useState(true);
+  const timerRef = React.useRef<number | null>(null);
 
   React.useEffect(() => {
     if (!supabase) return;
@@ -371,14 +376,54 @@ function CompanyReviewCard() {
           .limit(20);
 
         if (!data || data.length === 0) return;
-        const pick = data[Math.floor(Math.random() * data.length)];
-        setCompany(pick);
+        setPool(data as SuggestCompany[]);
+        const start = Math.floor(Math.random() * data.length);
+        setIdx(start);
+        setCompany((data as SuggestCompany[])[start]);
         setLogoOk(true);
       } catch (err) {
         console.error('Error loading suggestion:', err);
       }
     })();
   }, []);
+
+  const clearTimer = React.useCallback(() => {
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const startTimer = React.useCallback(() => {
+    clearTimer();
+    if (pool.length <= 1) return;
+    timerRef.current = window.setInterval(() => {
+      actionDirRef.current = 'next';
+      setIdx((prev) => (prev + 1) % pool.length);
+    }, 5000);
+  }, [clearTimer, pool.length]);
+
+  React.useEffect(() => {
+    if (pool.length === 0) return;
+    const next = pool[idx % pool.length];
+    setCompany(next);
+    setSlideDir(actionDirRef.current);
+    setLogoOk(true);
+    startTimer();
+    return () => clearTimer();
+  }, [idx, pool, startTimer, clearTimer]);
+
+  const goPrev = React.useCallback(() => {
+    if (pool.length === 0) return;
+    actionDirRef.current = 'prev';
+    setIdx((prev) => (prev - 1 + pool.length) % pool.length);
+  }, [pool.length]);
+
+  const goNext = React.useCallback(() => {
+    if (pool.length === 0) return;
+    actionDirRef.current = 'next';
+    setIdx((prev) => (prev + 1) % pool.length);
+  }, [pool.length]);
 
   if (!company) return null;
 
@@ -387,49 +432,111 @@ function CompanyReviewCard() {
     : '/companies';
 
   return (
-    <div className="bg-white rounded-none border border-indigo-200 shadow-sm overflow-hidden">
-      <div className="h-16 bg-gradient-to-r from-violet-500 via-indigo-500 to-blue-500 relative">
-        <span className="absolute top-2 right-2 text-[10px] bg-white/90 text-gray-600 font-semibold px-2 py-0.5 rounded-none border border-white/60">
-          Suggested
-        </span>
-        {company.logo_url && logoOk ? (
-          <img
-            src={company.logo_url}
-            alt={company.name}
-            onError={() => setLogoOk(false)}
-            className="absolute -bottom-5 left-4 w-11 h-11 rounded-none border-2 border-white object-contain bg-white shadow"
-          />
-        ) : (
-          <div className="absolute -bottom-5 left-4 w-11 h-11 rounded-none border-2 border-white bg-indigo-100 flex items-center justify-center shadow">
-            <Building2 className="h-5 w-5 text-indigo-600" />
+    <div className="bg-white rounded-none border border-indigo-200 shadow-sm overflow-hidden relative">
+      {pool.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={goPrev}
+            aria-label="Previous suggested company"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 inline-flex items-center justify-center rounded-none border border-indigo-200 bg-white/95 text-gray-700 hover:bg-white transition-colors shadow-sm"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            onClick={goNext}
+            aria-label="Next suggested company"
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 inline-flex items-center justify-center rounded-none border border-indigo-200 bg-white/95 text-gray-700 hover:bg-white transition-colors shadow-sm"
+          >
+            ›
+          </button>
+        </>
+      )}
+      <div
+        key={`${company.slug}-${idx}`}
+        className={slideDir === 'next' ? 'cr-slide-in-from-right' : 'cr-slide-in-from-left'}
+      >
+        <div className="h-16 bg-gradient-to-r from-violet-500 via-indigo-500 to-blue-500 relative">
+          <span className="absolute top-2 right-2 text-[10px] bg-white/90 text-gray-600 font-semibold px-2 py-0.5 rounded-none border border-white/60">
+            Suggested
+          </span>
+          {company.logo_url && logoOk ? (
+            <img
+              src={company.logo_url}
+              alt={company.name}
+              onError={() => setLogoOk(false)}
+              className="absolute -bottom-7 left-4 w-[5.5rem] h-[5.5rem] rounded-none border border-gray-200 object-contain bg-white shadow-sm"
+            />
+          ) : (
+            <div className="absolute -bottom-7 left-4 w-[5.5rem] h-[5.5rem] rounded-none border border-gray-200 bg-indigo-50 flex items-center justify-center shadow-sm">
+              <Building2 className="h-7 w-7 text-indigo-600" />
+            </div>
+          )}
+        </div>
+        <div className="pt-8 px-12 pb-3 bg-gradient-to-b from-white to-indigo-50/40">
+          <Link href={companyHref}>
+            <h4 className="text-[14px] font-bold text-gray-900 hover:text-indigo-600 transition-colors leading-tight">
+              {company.name}
+            </h4>
+          </Link>
+          <p className="text-[12px] text-gray-500 mt-1 leading-snug">
+            Review this company and earn points! Share your experience to help others.
+          </p>
+          <div className="flex items-center gap-1 mt-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <svg key={i} className="h-4 w-4 text-gray-200" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            ))}
           </div>
-        )}
-      </div>
-      <div className="pt-8 px-4 pb-3 bg-gradient-to-b from-white to-indigo-50/40">
-        <Link href={companyHref}>
-          <h4 className="text-[14px] font-bold text-gray-900 hover:text-indigo-600 transition-colors leading-tight">
-            {company.name}
-          </h4>
-        </Link>
-        <p className="text-[12px] text-gray-500 mt-1 leading-snug">
-          Review this company and earn points! Share your experience to help others.
-        </p>
-        <div className="flex items-center gap-1 mt-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <svg key={i} className="h-4 w-4 text-gray-200" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-          ))}
+        </div>
+        <div className="bg-gradient-to-r from-indigo-50 via-white to-sky-50 border-t border-indigo-100 px-12 py-2.5">
+          <Link
+            href={companyHref}
+            className="w-full inline-flex items-center justify-center py-2 rounded-none border border-indigo-600 text-indigo-700 hover:bg-indigo-600 hover:text-white text-sm font-semibold transition-colors"
+          >
+            Review & Earn Points
+          </Link>
         </div>
       </div>
-      <div className="bg-gradient-to-r from-indigo-50 via-white to-sky-50 border-t border-indigo-100 px-4 py-2.5">
-        <Link
-          href={companyHref}
-          className="w-full inline-flex items-center justify-center py-2 rounded-none border border-indigo-600 text-indigo-700 hover:bg-indigo-600 hover:text-white text-sm font-semibold transition-colors"
-        >
-          Review & Earn Points
-        </Link>
-      </div>
+
+      <style jsx>{`
+        .cr-slide-in-from-right {
+          animation: crSlideInFromRight 260ms ease-out;
+          will-change: transform, opacity;
+        }
+        .cr-slide-in-from-left {
+          animation: crSlideInFromLeft 260ms ease-out;
+          will-change: transform, opacity;
+        }
+        @keyframes crSlideInFromRight {
+          from {
+            opacity: 0.4;
+            transform: translateX(18px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        @keyframes crSlideInFromLeft {
+          from {
+            opacity: 0.4;
+            transform: translateX(-18px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .cr-slide-in-from-right,
+          .cr-slide-in-from-left {
+            animation: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }
@@ -452,6 +559,312 @@ interface RecommendedSellerPreview {
   company_name: string | null;
   country: string | null;
   created_at: string | null;
+}
+
+type FollowStatus = 'none' | 'loading' | 'pending';
+
+interface RecommendedCompany {
+  id: string;
+  name: string;
+  logo_url: string | null;
+  country_name: string | null;
+  slug: string;
+}
+
+function RecommendedUnconnectedDirectSellersCard() {
+  const { user } = useAuth();
+  const [rows, setRows] = React.useState<RecommendedSellerPreview[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [err, setErr] = React.useState<string | null>(null);
+  const [statusById, setStatusById] = React.useState<Record<string, FollowStatus>>({});
+
+  React.useEffect(() => {
+    if (!supabase) return;
+    (async () => {
+      try {
+        setErr(null);
+        setLoading(true);
+
+        const exclude = new Set<string>();
+        if (user?.id) {
+          const { data: conns, error: connsErr } = await supabase
+            .from('classified_connections')
+            .select('owner_id, connector_id, status')
+            .or(`owner_id.eq.${user.id},connector_id.eq.${user.id}`)
+            .in('status', ['pending', 'accepted'])
+            .limit(500);
+          if (connsErr) throw connsErr;
+          (conns || []).forEach((c: any) => {
+            const other = c.owner_id === user.id ? c.connector_id : c.owner_id;
+            if (other) exclude.add(other);
+          });
+          exclude.add(user.id);
+        }
+
+        let q: any = supabase
+          .from('profiles')
+          .select('id, full_name, username, image_url, country, created_at, points, is_direct_seller, company:mlm_companies!profiles_company_id_fkey(name)')
+          .eq('is_direct_seller', true)
+          .not('username', 'is', null)
+          .order('points', { ascending: false })
+          .limit(3);
+
+        if (exclude.size > 0) {
+          q = q.not('id', 'in', `(${Array.from(exclude).join(',')})`);
+        }
+
+        const { data, error } = await q;
+        if (error) throw error;
+
+        const mapped: RecommendedSellerPreview[] = (data || []).map((d: any) => ({
+          id: d.id,
+          full_name: d.full_name || d.username || 'Seller',
+          username: d.username || '',
+          image_url: d.image_url ?? null,
+          company_name: d?.company?.name ?? null,
+          country: d.country ?? null,
+          created_at: d.created_at ?? null,
+        }));
+
+        setRows(mapped.sort(() => Math.random() - 0.5));
+      } catch (e: any) {
+        console.error('Error loading unconnected sellers:', e);
+        setErr(e?.message || 'Failed to load recommendations.');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [user?.id]);
+
+  async function followSeller(profileId: string) {
+    if (!supabase) return;
+    if (!user) {
+      window.location.href = '/login';
+      return;
+    }
+    setStatusById((p) => ({ ...p, [profileId]: 'loading' }));
+    try {
+      const { error } = await supabase.from('classified_connections').insert({
+        owner_id: profileId,
+        connector_id: user.id,
+        status: 'pending',
+        remark: 'Connection request from recommendations card',
+      });
+      if (error) throw error;
+      setStatusById((p) => ({ ...p, [profileId]: 'pending' }));
+    } catch (e: any) {
+      console.error('Error following seller:', e);
+      setStatusById((p) => ({ ...p, [profileId]: 'none' }));
+    }
+  }
+
+  return (
+    <div className="bg-white rounded-none border border-gray-200 shadow-sm overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-100">
+        <p className="font-semibold text-gray-900">Recommended for you</p>
+      </div>
+
+      {loading ? (
+        <div className="p-4 space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-14 rounded-none border border-gray-200 bg-gray-50 animate-pulse" />
+          ))}
+        </div>
+      ) : err ? (
+        <div className="p-4 text-sm text-red-600 font-semibold">{err}</div>
+      ) : rows.length === 0 ? (
+        <div className="p-4 text-sm text-gray-500">No recommendations right now.</div>
+      ) : (
+        <div className="divide-y divide-gray-100">
+          {rows.map((r) => {
+            const st = statusById[r.id] || 'none';
+            return (
+              <div key={r.id} className="px-4 py-3 flex items-center gap-3">
+                <Link
+                  href={`/recommended-direct-sellers/${encodeURIComponent(r.username)}`}
+                  className="flex items-center gap-3 min-w-0 flex-1"
+                >
+                  {r.image_url ? (
+                    <img
+                      src={r.image_url}
+                      alt={r.full_name}
+                      className="w-11 h-11 rounded-full object-cover border border-gray-200 bg-white flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-11 h-11 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center flex-shrink-0">
+                      <User className="h-5 w-5 text-indigo-600" />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-900 truncate">{r.full_name}</p>
+                    <p className="text-xs text-gray-500 truncate">{r.company_name || 'Direct Seller'}</p>
+                  </div>
+                </Link>
+
+                <button
+                  type="button"
+                  disabled={st !== 'none'}
+                  onClick={() => followSeller(r.id)}
+                  className={`inline-flex items-center justify-center px-4 py-1.5 rounded-none border text-sm font-semibold transition-colors ${
+                    st === 'pending'
+                      ? 'border-gray-300 text-gray-500 bg-gray-50 cursor-not-allowed'
+                      : st === 'loading'
+                        ? 'border-gray-300 text-gray-400 bg-white cursor-wait'
+                        : 'border-indigo-600 text-indigo-700 hover:bg-indigo-600 hover:text-white'
+                  }`}
+                >
+                  {st === 'pending' ? 'Pending' : st === 'loading' ? '...' : 'Connect'}
+                </button>
+              </div>
+            );
+          })}
+
+          <div className="px-4 py-3 flex justify-center">
+            <Link href="/recommended-direct-sellers" className="inline-flex items-center gap-2 text-gray-700 hover:text-indigo-700 font-semibold">
+              Show more <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RecommendedCompaniesReviewCard() {
+  const [companies, setCompanies] = React.useState<RecommendedCompany[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [err, setErr] = React.useState<string | null>(null);
+  const [idx, setIdx] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!supabase) return;
+    (async () => {
+      try {
+        setErr(null);
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('mlm_companies')
+          .select('id, name, logo_url, country_name, slug')
+          .eq('status', 'approved')
+          .order('review_count', { ascending: false })
+          .limit(20);
+        if (error) throw error;
+        const mapped: RecommendedCompany[] = (data || []).map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          logo_url: c.logo_url ?? null,
+          country_name: c.country_name ?? null,
+          slug: c.slug || c.id,
+        }));
+        setCompanies(mapped.sort(() => Math.random() - 0.5));
+        setIdx(0);
+      } catch (e: any) {
+        console.error('Error loading recommended companies:', e);
+        setErr(e?.message || 'Failed to load companies.');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  function next() {
+    setIdx((prev) => (prev + 1) % Math.max(companies.length, 1));
+  }
+  function prev() {
+    setIdx((prev) => (prev - 1 + Math.max(companies.length, 1)) % Math.max(companies.length, 1));
+  }
+
+  if (!loading && (err || companies.length === 0)) return null;
+
+  const visible = companies.slice(idx, idx + 3).concat(companies.slice(0, Math.max(0, 3 - (companies.length - idx))));
+
+  return (
+    <div className="bg-white rounded-none border border-gray-200 shadow-sm overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <p className="font-semibold text-gray-900">Companies recommended for you</p>
+        <Link
+          href="/companies"
+          className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 hover:text-indigo-800"
+        >
+          Show all <ChevronRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+
+      {loading ? (
+        <div className="p-4 flex gap-3 overflow-hidden">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-32 flex-1 border border-gray-200 bg-gray-50 animate-pulse" />
+          ))}
+        </div>
+      ) : (
+        <div className="relative px-2 py-3">
+          {companies.length > 3 && (
+            <>
+              <button
+                type="button"
+                onClick={prev}
+                className="absolute left-1 top-1/2 -translate-y-1/2 z-10 h-7 w-7 flex items-center justify-center rounded-full bg-white border border-gray-300 text-gray-600 hover:bg-gray-50"
+                aria-label="Previous companies"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                onClick={next}
+                className="absolute right-1 top-1/2 -translate-y-1/2 z-10 h-7 w-7 flex items-center justify-center rounded-full bg-white border border-gray-300 text-gray-600 hover:bg-gray-50"
+                aria-label="Next companies"
+              >
+                ›
+              </button>
+            </>
+          )}
+          <div className="flex gap-3 overflow-hidden">
+            {visible.map((c) => {
+              const href = c.country_name
+                ? `/company/${encodeURIComponent(c.country_name)}/${c.slug}`
+                : `/company/India/${c.slug}`;
+              return (
+                <Link
+                  key={c.id}
+                  href={href}
+                  className="flex-1 min-w-0 bg-white border border-gray-200 hover:border-indigo-300 hover:shadow-sm transition-shadow p-3 flex flex-col justify-between"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    {c.logo_url ? (
+                      <img
+                        src={c.logo_url}
+                        alt={c.name}
+                        className="w-9 h-9 rounded-none border border-gray-200 object-contain bg-white flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-9 h-9 rounded-none bg-indigo-100 border border-indigo-200 flex items-center justify-center flex-shrink-0">
+                        <Building2 className="h-4 w-4 text-indigo-700" />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="font-semibold text-gray-900 text-sm truncate">{c.name}</p>
+                      {c.country_name && (
+                        <p className="text-xs text-gray-500 truncate">{c.country_name}</p>
+                      )}
+                    </div>
+                  </div>
+                  <span className="mt-auto text-xs font-semibold text-indigo-700">Review this company</span>
+                </Link>
+              );
+            })}
+          </div>
+          <div className="mt-3 flex justify-center sm:hidden">
+            <Link
+              href="/companies"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-700 hover:text-indigo-800"
+            >
+              Show more <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 interface LatestNewsItem {
@@ -582,35 +995,68 @@ function TopEarners() {
 function RecommendedDirectSellersPreview() {
   const [sellers, setSellers] = React.useState<RecommendedSellerPreview[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [loadError, setLoadError] = React.useState<string | null>(null);
   const SELLERS_TO_SHOW = 12;
+  const scrollRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
     if (!supabase) return;
     (async () => {
       try {
-        const { data } = await supabase
+        setLoadError(null);
+
+        const { data: premiumData, error: premiumErr } = await supabase
           .from('profiles')
-          .select('id, full_name, username, image_url, avatar_url, company_name, country, created_at')
+          .select('id, full_name, username, image_url, country, created_at, points, is_premium, company:mlm_companies!profiles_company_id_fkey(name)')
+          .eq('is_premium', true)
+          .not('username', 'is', null)
           .order('points', { ascending: false })
           .limit(SELLERS_TO_SHOW);
+        if (premiumErr) throw premiumErr;
+
         setSellers(
-          (data || []).map((d: any) => ({
+          (premiumData || []).map((d: any) => ({
             id: d.id,
             full_name: d.full_name || d.username || 'Seller',
             username: d.username || '',
-            image_url: (d.image_url || d.avatar_url) ?? null,
-            company_name: d.company_name ?? null,
+            image_url: d.image_url ?? null,
+            company_name: d?.company?.name ?? null,
             country: d.country ?? null,
             created_at: d.created_at ?? null,
           }))
         );
       } catch (err) {
-        console.error('Error loading recommended sellers:', err);
+        const e = err as any;
+        console.error('Error loading recommended sellers:', e);
+        setLoadError(e?.message || 'Failed to load recommended sellers.');
       } finally {
         setLoading(false);
       }
     })();
   }, []);
+
+  // Infinite auto-scroll horizontally (left -> right)
+  React.useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || loading || sellers.length <= 1) return;
+    if (typeof window === 'undefined') return;
+
+    let rafId = 0;
+    const pxPerFrame = 0.6; // smooth speed
+
+    const tick = () => {
+      // With duplicated content, reset at halfway for seamless loop
+      const half = el.scrollWidth / 2;
+      el.scrollLeft += pxPerFrame;
+      if (el.scrollLeft >= half) {
+        el.scrollLeft = 0;
+      }
+      rafId = window.requestAnimationFrame(tick);
+    };
+
+    rafId = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(rafId);
+  }, [loading, sellers.length]);
 
   function resolveAvatar(url: string | null): string | null {
     if (!url) return null;
@@ -654,32 +1100,36 @@ function RecommendedDirectSellersPreview() {
           </div>
         ) : sellers.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {sellers.map((s) => {
+            <div
+              ref={scrollRef}
+              className="flex gap-3 overflow-x-hidden pb-2"
+              style={{ scrollbarWidth: 'none' }}
+            >
+              {[...sellers, ...sellers].map((s, i) => {
                 const avatar = resolveAvatar(s.image_url);
                 const since = formatSince(s.created_at);
                 const c = s.country ? normalizeCountry(s.country) : null;
                 return (
                   <Link
-                    key={s.id}
+                    key={`${s.id}-${i}`}
                     href={`/recommended-direct-sellers/${encodeURIComponent(s.username)}`}
-                    className="group bg-white rounded-none border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-3 flex items-center gap-3"
+                    className="group bg-white rounded-none border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-4 flex items-center gap-4 min-w-[320px] sm:min-w-[360px] md:min-w-[420px]"
                   >
                     {avatar ? (
                       <img
                         src={avatar}
                         alt={s.full_name}
-                        className="w-12 h-12 rounded-none object-cover border border-gray-200 bg-white"
+                        className="w-14 h-14 sm:w-16 sm:h-16 rounded-none object-cover border border-gray-200 bg-white"
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-none bg-indigo-600/10 border border-indigo-200 flex items-center justify-center">
-                        <User className="h-5 w-5 text-indigo-600" />
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-none bg-indigo-600/10 border border-indigo-200 flex items-center justify-center">
+                        <User className="h-6 w-6 text-indigo-600" />
                       </div>
                     )}
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 min-w-0">
-                        <p className="font-bold text-gray-900 truncate group-hover:text-indigo-700 transition-colors">
+                        <p className="font-bold text-[15px] sm:text-[16px] text-gray-900 truncate group-hover:text-indigo-700 transition-colors">
                           {s.full_name}
                         </p>
                         {c?.code && (
@@ -687,19 +1137,19 @@ function RecommendedDirectSellersPreview() {
                             src={`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`}
                             srcSet={`https://flagcdn.com/w80/${c.code.toLowerCase()}.png 2x`}
                             alt={c.name}
-                            className="h-4 w-6 object-cover border border-gray-200 flex-shrink-0"
+                            className="h-4 w-6 sm:h-5 sm:w-7 object-cover border border-gray-200 flex-shrink-0"
                           />
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="text-sm text-gray-600 truncate">
                         {s.company_name || 'Direct Seller'}
                       </p>
                       {since && (
-                        <p className="text-[11px] text-gray-400 truncate mt-0.5">{since}</p>
+                        <p className="text-xs text-gray-400 truncate mt-0.5">{since}</p>
                       )}
                     </div>
 
-                    <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-indigo-400 flex-shrink-0" />
+                    <ChevronRight className="h-6 w-6 text-gray-300 group-hover:text-indigo-400 flex-shrink-0" />
                   </Link>
                 );
               })}
@@ -707,16 +1157,20 @@ function RecommendedDirectSellersPreview() {
 
             <div className="mt-5 flex justify-center">
               <Link
-                href="/recommended-direct-sellers?sortBy=points"
+                href="/register?type=recommended-direct-seller"
                 className="inline-flex items-center justify-center px-6 py-2.5 rounded-none bg-indigo-700 hover:bg-indigo-800 text-white font-bold shadow-sm"
               >
-                View all Recommended Direct Sellers
+                Register as Recommended Direct Seller
               </Link>
             </div>
           </>
         ) : (
           <div className="text-center text-sm text-gray-500 py-6">
-            No recommended sellers found right now.
+            {loadError ? (
+              <span className="text-red-600 font-semibold">{loadError}</span>
+            ) : (
+              'No recommended sellers found right now.'
+            )}
           </div>
         )}
       </div>
@@ -1307,7 +1761,7 @@ export function HomePageContent() {
                     </div>
                     <div className="min-w-0">
                       <p className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
-                        Browse MLM Companies
+                         Browse Top MLM Companies
                       </p>
                       <p className="text-sm text-gray-500 mt-1">
                         Explore profiles, categories, and details.
@@ -1327,7 +1781,7 @@ export function HomePageContent() {
                     </div>
                     <div className="min-w-0">
                       <p className="font-bold text-gray-900 group-hover:text-emerald-700 transition-colors">
-                        Find Direct Sellers
+                        Find Top Direct Sellers
                       </p>
                       <p className="text-sm text-gray-500 mt-1">
                         Connect with sellers by niche and location.
@@ -1389,7 +1843,7 @@ export function HomePageContent() {
               </div>
               <CompanyReviewCard />
               <TopEarners />
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+              <div className="bg-white rounded-none border border-gray-200 shadow-sm p-4">
                 <p className="font-semibold text-gray-900">Want your personalized feed?</p>
                 <p className="text-sm text-gray-500 mt-1">
                   Sign in to see the latest blogs, classifieds, news, and companies tailored for you.
@@ -1397,13 +1851,13 @@ export function HomePageContent() {
                 <div className="mt-3 flex gap-2">
                   <Link
                     href="/login"
-                    className="flex-1 inline-flex items-center justify-center px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold"
+                    className="flex-1 inline-flex items-center justify-center px-4 py-2 rounded-none bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold"
                   >
                     Sign in
                   </Link>
                   <Link
                     href="/signup"
-                    className="flex-1 inline-flex items-center justify-center px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 text-sm font-semibold text-gray-800"
+                    className="flex-1 inline-flex items-center justify-center px-4 py-2 rounded-none border border-gray-300 hover:bg-gray-50 text-sm font-semibold text-gray-800"
                   >
                     Sign up
                   </Link>
@@ -1426,7 +1880,7 @@ export function HomePageContent() {
             <div className="sticky top-4 space-y-4">
             {/* Profile card - logged in users only */}
               {profile && (
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="bg-white rounded-none border border-gray-200 shadow-sm overflow-hidden">
                 <div className="h-16 bg-gradient-to-r from-indigo-400 via-sky-400 to-emerald-400 relative">
                   {profile.image_url && (
                     <div className="absolute -bottom-6 left-4">
@@ -1480,7 +1934,7 @@ export function HomePageContent() {
                       className="flex items-center gap-1.5 mt-1.5 group"
                     >
                       {profile.company_logo ? (
-                        <img src={profile.company_logo} alt="" className="h-10 w-10 rounded border border-gray-200 object-contain bg-white" />
+                        <img src={profile.company_logo} alt="" className="h-10 w-10 rounded-none border border-gray-200 object-contain bg-white" />
                       ) : (
                         <Building2 className="h-5 w-5 text-gray-400" />
                       )}
@@ -1489,11 +1943,11 @@ export function HomePageContent() {
                   )}
                 </div>
                 <div className="border-t border-gray-100 px-4 py-2.5 space-y-1.5">
-                  <Link href="/profile" className="flex items-center justify-between text-[12px] hover:bg-gray-50 -mx-2 px-2 py-1 rounded transition-colors">
+                  <Link href="/profile" className="flex items-center justify-between text-[12px] hover:bg-gray-50 -mx-2 px-2 py-1 rounded-none transition-colors">
                     <span className="text-gray-500 flex items-center gap-1.5"><Eye className="h-3.5 w-3.5" /> Profile viewers</span>
                     <span className="text-indigo-600 font-semibold">{profile.profile_views}</span>
                   </Link>
-                  <Link href="/dashboard" className="flex items-center justify-between text-[12px] hover:bg-gray-50 -mx-2 px-2 py-1 rounded transition-colors">
+                  <Link href="/dashboard" className="flex items-center justify-between text-[12px] hover:bg-gray-50 -mx-2 px-2 py-1 rounded-none transition-colors">
                     <span className="text-gray-500 flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" /> Post impressions</span>
                     <span className="text-indigo-600 font-semibold">{profile.post_impressions}</span>
                   </Link>
@@ -1502,24 +1956,24 @@ export function HomePageContent() {
             )}
 
             {/* Quick Links */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+            <div className="bg-white rounded-none border border-gray-200 shadow-sm p-4">
               <h3 className="font-semibold text-gray-900 mb-3">Quick Links</h3>
               <div className="space-y-1">
-                <Link href="/my-blogs" className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 text-gray-700 text-sm">
+                <Link href="/my-blogs" className="flex items-center justify-between py-2 px-3 rounded-none hover:bg-gray-50 text-gray-700 text-sm">
                   <span className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-gray-400" />
                     My Blogs
                   </span>
                   <ChevronRight className="h-4 w-4 text-gray-400" />
                 </Link>
-                <Link href="/my-classifieds" className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 text-gray-700 text-sm">
+                <Link href="/my-classifieds" className="flex items-center justify-between py-2 px-3 rounded-none hover:bg-gray-50 text-gray-700 text-sm">
                   <span className="flex items-center gap-2">
                     <Tag className="h-4 w-4 text-gray-400" />
                     My Classifieds
                   </span>
                   <ChevronRight className="h-4 w-4 text-gray-400" />
                 </Link>
-                <Link href="/my-companies" className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 text-gray-700 text-sm">
+                <Link href="/my-companies" className="flex items-center justify-between py-2 px-3 rounded-none hover:bg-gray-50 text-gray-700 text-sm">
                   <span className="flex items-center gap-2">
                     <Building2 className="h-4 w-4 text-gray-400" />
                     My Company
@@ -1535,24 +1989,24 @@ export function HomePageContent() {
           {/* Center - Feed */}
           <div className="flex-1 min-w-0 order-1 lg:order-2 max-w-2xl mx-auto lg:mx-0">
             {/* What's New composer */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-6">
+            <div className="bg-white rounded-none border border-gray-200 shadow-sm p-4 mb-6">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-none bg-indigo-100 flex items-center justify-center flex-shrink-0">
                   <User className="h-5 w-5 text-indigo-600" />
                 </div>
                 <div className="flex-1">
-                  <Link href="/blog" className="block w-full text-left px-4 py-2.5 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors text-sm">
+                  <Link href="/blog" className="block w-full text-left px-4 py-2.5 rounded-none border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors text-sm">
                     What&apos;s New?
                   </Link>
                 </div>
                 <div className="flex items-center gap-1 text-gray-400">
-                  <button type="button" className="p-2 rounded-lg hover:bg-gray-100" aria-label="Emoji">
+                  <button type="button" className="p-2 rounded-none hover:bg-gray-100" aria-label="Emoji">
                     <Sparkles className="h-5 w-5" />
                   </button>
-                  <button type="button" className="p-2 rounded-lg hover:bg-gray-100" aria-label="Image">
+                  <button type="button" className="p-2 rounded-none hover:bg-gray-100" aria-label="Image">
                     <Image className="h-5 w-5" />
                   </button>
-                  <button type="button" className="p-2 rounded-lg hover:bg-gray-100" aria-label="More">
+                  <button type="button" className="p-2 rounded-none hover:bg-gray-100" aria-label="More">
                     <MoreHorizontal className="h-5 w-5" />
                   </button>
                 </div>
@@ -1563,9 +2017,9 @@ export function HomePageContent() {
             {loading ? (
               <div className="space-y-4">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 animate-pulse">
+                  <div key={i} className="bg-white rounded-none border border-gray-200 p-4 animate-pulse">
                     <div className="flex gap-3 mb-3">
-                      <div className="w-12 h-12 rounded-full bg-gray-200" />
+                      <div className="w-12 h-12 rounded-none bg-gray-200" />
                       <div className="flex-1">
                         <div className="h-4 bg-gray-200 rounded w-32 mb-2" />
                         <div className="h-3 bg-gray-100 rounded w-20" />
@@ -1573,16 +2027,22 @@ export function HomePageContent() {
                     </div>
                     <div className="h-4 bg-gray-200 rounded w-full mb-2" />
                     <div className="h-4 bg-gray-100 rounded w-3/4 mb-4" />
-                    <div className="h-48 bg-gray-100 rounded-lg" />
+                    <div className="h-48 bg-gray-100 rounded-none" />
                   </div>
                 ))}
               </div>
             ) : feedItems.length > 0 ? (
               <>
                 <div className="space-y-4">
-                  {feedItems.map((item) => (
-                    <FeedCard key={item.id} item={item} />
-                  ))}
+                  {feedItems.flatMap((item, idx) => {
+                    const out: React.ReactNode[] = [<FeedCard key={item.id} item={item} />];
+                    // After 3rd post: recommended direct sellers + companies
+                    if (idx === 2) {
+                      out.push(<RecommendedUnconnectedDirectSellersCard key="rec-sellers-once" />);
+                      out.push(<RecommendedCompaniesReviewCard key="rec-companies-once" />);
+                    }
+                    return out;
+                  })}
                 </div>
 
                 {/* Sentinel for infinite scroll */}
@@ -1607,7 +2067,7 @@ export function HomePageContent() {
                 )}
               </>
             ) : (
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
+              <div className="bg-white rounded-none border border-gray-200 shadow-sm p-12 text-center">
                 <LayoutGrid className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500 mb-2">No posts in your feed yet.</p>
                 <p className="text-sm text-gray-400">Check back later for blogs, classifieds, news, and companies.</p>

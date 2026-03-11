@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MessageCircle, Repeat2, Heart, BarChart2, Bookmark, Upload, MoreHorizontal, UserPlus, Check, Clock, Star, ChevronRight } from 'lucide-react';
+import { MessageCircle, Repeat2, Heart, BarChart2, Bookmark, Upload, UserPlus, Check, Clock, Star, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
@@ -127,11 +127,39 @@ export function FeedCard({ item }: FeedCardProps) {
 
   const [connectStatus, setConnectStatus] = React.useState<ConnectStatus>('none');
 
+  const [showCommentBox, setShowCommentBox] = React.useState(false);
+  const [inlineComment, setInlineComment] = React.useState('');
+  const [submittingInlineComment, setSubmittingInlineComment] = React.useState(false);
+  const commentInputRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const [commentCount, setCommentCount] = React.useState<number | null>(null);
+
   React.useEffect(() => {
     if (showConnect && user?.id && authorId) {
       checkConnection(authorId);
     }
   }, [user?.id, authorId]);
+
+  // Load blog comment count for blog items
+  React.useEffect(() => {
+    if (item.type !== 'blog' || !supabase) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { count } = await supabase
+          .from('blog_comments')
+          .select('id', { count: 'exact', head: true })
+          .eq('blog_id', item.id);
+        if (!cancelled) {
+          setCommentCount(count ?? 0);
+        }
+      } catch {
+        if (!cancelled) setCommentCount(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [item.id, item.type]);
 
   async function checkConnection(ownerId: string) {
     if (!user?.id || !supabase) return;
@@ -189,9 +217,56 @@ export function FeedCard({ item }: FeedCardProps) {
     }
   }
 
+  function handleCommentClick() {
+    if (item.type !== 'blog') {
+      router.push(item.href);
+      return;
+    }
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    setShowCommentBox(true);
+    setTimeout(() => commentInputRef.current?.focus(), 0);
+  }
+
+  async function submitInlineComment() {
+    if (item.type !== 'blog' || !supabase) return;
+    const text = inlineComment.trim();
+    if (!text) return;
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    try {
+      setSubmittingInlineComment(true);
+      const { error } = await supabase.from('blog_comments').insert({
+        blog_id: item.id,
+        user_id: user.id,
+        content: text,
+      });
+      if (error) throw error;
+      setInlineComment('');
+      setCommentCount((prev) => (typeof prev === 'number' ? prev + 1 : (prev ?? 0) + 1));
+      // Best-effort points
+      try {
+        await supabase.rpc('award_points', { user_id: user.id, points: 2, action: 'blog_comment' });
+      } catch {
+        // ignore
+      }
+      toast.success('Comment posted');
+    } catch (e: any) {
+      console.error('Error posting inline comment:', e);
+      toast.error('Failed to post comment');
+    } finally {
+      setSubmittingInlineComment(false);
+    }
+  }
+
   return (
-    <article className="bg-white border border-gray-200 rounded-xl hover:bg-gray-50/50 transition-colors">
-      <div className="flex gap-3 p-4">
+    <article className="bg-white border border-gray-200 rounded-none hover:bg-gray-50/50 transition-colors">
+      <div className="flex gap-3 px-6 py-5">
         {/* Avatar */}
         <Link href={item.href} className="flex-shrink-0">
           {item.type === 'company' && item.image_url ? (
@@ -228,7 +303,7 @@ export function FeedCard({ item }: FeedCardProps) {
               {item.type === 'company' && (
                 <Link
                   href={item.href}
-                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-amber-500 text-amber-600 hover:bg-amber-500 hover:text-white text-xs font-semibold transition-colors"
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-none border border-amber-500 text-amber-600 hover:bg-amber-500 hover:text-white text-xs font-semibold transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Star className="h-3.5 w-3.5" />
@@ -239,14 +314,14 @@ export function FeedCard({ item }: FeedCardProps) {
                 <button
                   type="button"
                   onClick={handleConnect}
-                  className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white text-xs font-semibold transition-colors"
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-none border border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white text-xs font-semibold transition-colors"
                 >
                   <UserPlus className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">Connect</span>
                 </button>
               )}
               {showConnect && connectStatus === 'loading' && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-gray-300 text-gray-400 text-xs font-semibold">
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-none border border-gray-300 text-gray-400 text-xs font-semibold">
                   <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -254,20 +329,17 @@ export function FeedCard({ item }: FeedCardProps) {
                 </span>
               )}
               {showConnect && connectStatus === 'pending' && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-amber-400 text-amber-600 text-xs font-semibold">
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-none border border-amber-400 text-amber-600 text-xs font-semibold">
                   <Clock className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">Pending</span>
                 </span>
               )}
               {showConnect && connectStatus === 'accepted' && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-green-500 text-green-600 text-xs font-semibold">
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-none border border-green-500 text-green-600 text-xs font-semibold">
                   <Check className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">Connected</span>
                 </span>
               )}
-              <button type="button" className="p-1.5 rounded-full hover:bg-indigo-50 text-gray-400 hover:text-indigo-600 transition-colors" aria-label="More">
-                <MoreHorizontal className="h-[18px] w-[18px]" />
-              </button>
             </div>
           </div>
 
@@ -294,7 +366,7 @@ export function FeedCard({ item }: FeedCardProps) {
           {/* Image */}
           {item.type !== 'company' && (
             <Link href={item.href} className="block mt-3">
-              <div className="rounded-2xl overflow-hidden border border-gray-200 bg-gray-100">
+              <div className="rounded-none overflow-hidden border border-gray-200 bg-gray-100">
                 {item.image_url ? (
                   <img
                     src={item.image_url}
@@ -326,39 +398,72 @@ export function FeedCard({ item }: FeedCardProps) {
 
           {/* Engagement bar */}
           <div className="flex items-center justify-between mt-2 max-w-md -ml-2">
-            <button type="button" className="group flex items-center gap-1 text-gray-500 hover:text-blue-500 transition-colors">
-              <span className="p-2 rounded-full group-hover:bg-blue-50 transition-colors">
+            <button
+              type="button"
+              onClick={handleCommentClick}
+              className="group flex items-center gap-1 text-gray-500 hover:text-blue-500 transition-colors"
+            >
+              <span className="p-2 rounded-none group-hover:bg-blue-50 transition-colors">
                 <MessageCircle className="h-[18px] w-[18px]" />
               </span>
-              <span className="text-[13px]">{item.comments ? formatCount(item.comments) : ''}</span>
+              <span className="text-[13px] ml-0.5">
+                {item.type === 'blog'
+                  ? formatCount(commentCount ?? 0)
+                  : formatCount(item.comments ?? 0)}
+              </span>
             </button>
             <button type="button" className="group flex items-center gap-1 text-gray-500 hover:text-green-500 transition-colors">
-              <span className="p-2 rounded-full group-hover:bg-green-50 transition-colors">
+              <span className="p-2 rounded-none group-hover:bg-green-50 transition-colors">
                 <Repeat2 className="h-[18px] w-[18px]" />
               </span>
               <span className="text-[13px]">{item.shares ? formatCount(item.shares) : ''}</span>
             </button>
             <button type="button" className="group flex items-center gap-1 text-gray-500 hover:text-pink-500 transition-colors">
-              <span className="p-2 rounded-full group-hover:bg-pink-50 transition-colors">
+              <span className="p-2 rounded-none group-hover:bg-pink-50 transition-colors">
                 <Heart className="h-[18px] w-[18px]" />
               </span>
               <span className="text-[13px]">{item.likes ? formatCount(item.likes) : ''}</span>
             </button>
             <button type="button" className="group flex items-center gap-1 text-gray-500 hover:text-blue-500 transition-colors">
-              <span className="p-2 rounded-full group-hover:bg-blue-50 transition-colors">
+              <span className="p-2 rounded-none group-hover:bg-blue-50 transition-colors">
                 <BarChart2 className="h-[18px] w-[18px]" />
               </span>
               <span className="text-[13px]">{item.views ? formatCount(item.views) : ''}</span>
             </button>
             <div className="flex items-center gap-0">
-              <button type="button" className="p-2 rounded-full text-gray-500 hover:text-blue-500 hover:bg-blue-50 transition-colors" aria-label="Bookmark">
+              <button type="button" className="p-2 rounded-none text-gray-500 hover:text-blue-500 hover:bg-blue-50 transition-colors" aria-label="Bookmark">
                 <Bookmark className="h-[18px] w-[18px]" />
               </button>
-              <button type="button" className="p-2 rounded-full text-gray-500 hover:text-blue-500 hover:bg-blue-50 transition-colors" aria-label="Share">
+              <button type="button" className="p-2 rounded-none text-gray-500 hover:text-blue-500 hover:bg-blue-50 transition-colors" aria-label="Share">
                 <Upload className="h-[18px] w-[18px]" />
               </button>
             </div>
           </div>
+
+          {showCommentBox && item.type === 'blog' && (
+            <div className="mt-3 border border-gray-200 rounded-none p-3">
+              <textarea
+                ref={commentInputRef}
+                value={inlineComment}
+                onChange={(e) => setInlineComment(e.target.value)}
+                placeholder={user ? 'Add a comment…' : 'Login to add a comment…'}
+                disabled={!user || submittingInlineComment}
+                className="w-full min-h-[70px] rounded-none border border-gray-200 px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                maxLength={2000}
+              />
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <span className="text-xs text-gray-400">{inlineComment.trim().length}/2000</span>
+                <button
+                  type="button"
+                  onClick={submitInlineComment}
+                  disabled={!user || submittingInlineComment || inlineComment.trim().length === 0}
+                  className="inline-flex items-center justify-center px-4 py-1.5 rounded-none bg-indigo-700 hover:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold"
+                >
+                  {submittingInlineComment ? 'Posting…' : 'Post'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </article>
