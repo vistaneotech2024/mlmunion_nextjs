@@ -266,104 +266,102 @@ export function FeedCard({ item }: FeedCardProps) {
 
   return (
     <article className="bg-white border border-gray-200 rounded-none hover:bg-gray-50/50 transition-colors">
-      <div className="flex gap-3 px-6 py-5">
-        {/* Avatar */}
-        <Link href={item.href} className="flex-shrink-0">
-          {item.type === 'company' && item.image_url ? (
-            <div className="w-11 h-11 rounded-full overflow-hidden bg-gray-100 border border-gray-200">
-              <img src={item.image_url} alt={displayName} className="w-full h-full object-cover" />
-            </div>
-          ) : avatarUrl ? (
-            <div className="w-11 h-11 rounded-full overflow-hidden bg-gray-100">
-              <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
-            </div>
-          ) : (
-            <div className="w-11 h-11 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg">
-              {displayName.charAt(0).toUpperCase()}
-            </div>
-          )}
-        </Link>
-
-        {/* Body */}
-        <div className="flex-1 min-w-0">
-          {/* Header row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1 min-w-0">
-              <Link href={item.href} className="flex items-center gap-1 min-w-0">
-                <span className="font-bold text-[15px] text-gray-900 truncate">{displayName}</span>
-                {(isVerified || isPremium) && <VerifiedBadge premium={isPremium} />}
-              </Link>
-              {handle && (
-                <span className="text-gray-500 text-[15px] truncate hidden sm:inline">{handle}</span>
-              )}
-              <span className="text-gray-500 text-[15px]">&middot;</span>
-              <span className="text-gray-500 text-[15px] whitespace-nowrap">{getTimeAgo(item.created_at)}</span>
-            </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              {item.type === 'company' && (
-                <Link
-                  href={item.href}
-                  className="inline-flex items-center gap-1 px-3 py-1 rounded-none border border-amber-500 text-amber-600 hover:bg-amber-500 hover:text-white text-xs font-semibold transition-colors"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Star className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Review</span>
-                </Link>
-              )}
-              {showConnect && connectStatus === 'none' && (
-                <button
-                  type="button"
-                  onClick={handleConnect}
-                  className="inline-flex items-center gap-1 px-3 py-1 rounded-none border border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white text-xs font-semibold transition-colors"
-                >
-                  <UserPlus className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Connect</span>
-                </button>
-              )}
-              {showConnect && connectStatus === 'loading' && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-none border border-gray-300 text-gray-400 text-xs font-semibold">
-                  <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                </span>
-              )}
-              {showConnect && connectStatus === 'pending' && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-none border border-amber-400 text-amber-600 text-xs font-semibold">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Pending</span>
-                </span>
-              )}
-              {showConnect && connectStatus === 'accepted' && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-none border border-green-500 text-green-600 text-xs font-semibold">
-                  <Check className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Connected</span>
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* "From" line for type context */}
-          <div className="flex items-center gap-1.5 mt-0.5 text-[13px]">
-            <span className="text-gray-500">From</span>
-            <span className="font-semibold text-gray-700">{getTypeBadge(item.type)}</span>
-            {item.category_name && (
-              <>
-                <span className="text-gray-400">&middot;</span>
-                <span className="text-gray-500">{item.category_name}</span>
-              </>
+      <div className="px-4 py-4 sm:px-6 sm:py-5">
+        {/* Top row: Avatar + user meta (aligns content below with left edge) */}
+        <div className="flex gap-3">
+          <Link href={item.href} className="flex-shrink-0">
+            {item.type === 'company' && item.image_url ? (
+              <div className="w-11 h-11 rounded-full overflow-hidden bg-gray-100 border border-gray-200">
+                <img src={item.image_url} alt={displayName} className="w-full h-full object-cover" />
+              </div>
+            ) : avatarUrl ? (
+              <div className="w-11 h-11 rounded-full overflow-hidden bg-gray-100">
+                <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <div className="w-11 h-11 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg">
+                {displayName.charAt(0).toUpperCase()}
+              </div>
             )}
+          </Link>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1 min-w-0">
+                <Link href={item.href} className="flex items-center gap-1 min-w-0">
+                  <span className="font-bold text-[15px] text-gray-900 truncate">{displayName}</span>
+                  {(isVerified || isPremium) && <VerifiedBadge premium={isPremium} />}
+                </Link>
+                {handle && (
+                  <span className="text-gray-500 text-[15px] truncate hidden sm:inline">{handle}</span>
+                )}
+                <span className="text-gray-500 text-[15px]">&middot;</span>
+                <span className="text-gray-500 text-[15px] whitespace-nowrap">{getTimeAgo(item.created_at)}</span>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {item.type === 'company' && (
+                  <Link
+                    href={item.href}
+                    className="inline-flex items-center gap-1 px-3 py-1 rounded-none border border-amber-500 text-amber-600 hover:bg-amber-500 hover:text-white text-xs font-semibold transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Star className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Review</span>
+                  </Link>
+                )}
+                {showConnect && connectStatus === 'none' && (
+                  <button
+                    type="button"
+                    onClick={handleConnect}
+                    className="inline-flex items-center gap-1 px-3 py-1 rounded-none border border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white text-xs font-semibold transition-colors"
+                  >
+                    <UserPlus className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Connect</span>
+                  </button>
+                )}
+                {showConnect && connectStatus === 'loading' && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-none border border-gray-300 text-gray-400 text-xs font-semibold">
+                    <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  </span>
+                )}
+                {showConnect && connectStatus === 'pending' && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-none border border-amber-400 text-amber-600 text-xs font-semibold">
+                    <Clock className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Pending</span>
+                  </span>
+                )}
+                {showConnect && connectStatus === 'accepted' && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-none border border-green-500 text-green-600 text-xs font-semibold">
+                    <Check className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Connected</span>
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 mt-0.5 text-[13px]">
+              <span className="text-gray-500">From</span>
+              <span className="font-semibold text-gray-700">{getTypeBadge(item.type)}</span>
+              {item.category_name && (
+                <>
+                  <span className="text-gray-400">&middot;</span>
+                  <span className="text-gray-500">{item.category_name}</span>
+                </>
+              )}
+            </div>
           </div>
+        </div>
 
-          {/* Content */}
-          <Link href={item.href} className="block mt-1.5">
+        {/* Full-width content: left-aligned with user profile (same as avatar) */}
+        <div className="mt-3 w-full">
+          <Link href={item.href} className="block">
             <h3 className="text-[15px] font-semibold text-gray-900 leading-snug">{item.title}</h3>
             {item.excerpt && (
               <p className="text-[15px] text-gray-700 leading-relaxed mt-0.5 line-clamp-3">{item.excerpt}</p>
             )}
           </Link>
 
-          {/* Image */}
           {item.type !== 'company' && (
             <Link href={item.href} className="block mt-3">
               <div className="rounded-none overflow-hidden border border-gray-200 bg-gray-100">
@@ -387,7 +385,6 @@ export function FeedCard({ item }: FeedCardProps) {
             </Link>
           )}
 
-          {/* Read more */}
           <Link
             href={item.href}
             className="inline-flex items-center gap-1 mt-3 text-indigo-600 hover:text-indigo-700 text-sm font-semibold transition-colors"
@@ -396,7 +393,6 @@ export function FeedCard({ item }: FeedCardProps) {
             <ChevronRight className="h-4 w-4" />
           </Link>
 
-          {/* Engagement bar */}
           <div className="flex items-center justify-between mt-2 max-w-md -ml-2">
             <button
               type="button"

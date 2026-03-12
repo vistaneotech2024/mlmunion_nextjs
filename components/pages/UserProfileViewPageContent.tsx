@@ -696,11 +696,12 @@ export function UserProfileViewPageContent() {
   return (
     <>
     <div className="min-h-screen bg-gray-50">
-      <div className="py-8" style={{ background: 'linear-gradient(to right,#312e81, #1846c6 )' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-6">
-            <div className="flex items-center gap-4">
-              <div className="relative w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg overflow-hidden">
+      {/* Header - gradient */}
+      <div className="py-4 sm:py-6 lg:py-8" style={{ background: 'linear-gradient(to right,#312e81, #1846c6 )' }}>
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-4 sm:mb-6">
+            <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+              <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white flex items-center justify-center shadow-lg overflow-hidden flex-shrink-0">
                 {profile.image_url || profile.avatar_url ? (
                   <img
                     src={profile.image_url || profile.avatar_url || ''}
@@ -709,7 +710,7 @@ export function UserProfileViewPageContent() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-indigo-100">
-                    <span className="text-2xl font-bold text-indigo-600">
+                    <span className="text-xl sm:text-2xl font-bold text-indigo-600">
                       {(profile.full_name || profile.username || 'U').charAt(0).toUpperCase()}
                     </span>
                   </div>
@@ -720,60 +721,60 @@ export function UserProfileViewPageContent() {
                     setEditSection('avatar');
                     setShowEditModal(true);
                   }}
-                  className="absolute -bottom-2 right-0 px-2 py-0.5 rounded-full bg-indigo-600 text-[10px] font-semibold text-white shadow-sm hover:bg-indigo-700"
+                  className="absolute -bottom-1 right-0 sm:-bottom-2 sm:right-0 px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full bg-indigo-600 text-[9px] sm:text-[10px] font-semibold text-white shadow-sm hover:bg-indigo-700"
                 >
                   Change
                 </button>
               </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-3xl font-bold text-white">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white truncate">
                     {profile.full_name || profile.username || 'User'}
                   </h1>
                   {profile.is_verified && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-500 text-white">
+                    <span className="inline-flex items-center px-2 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-green-500 text-white flex-shrink-0">
                       <BadgeCheck className="h-3 w-3 mr-1" />
                       Verified
                     </span>
                   )}
                 </div>
-                {profile.username && <p className="text-blue-100 text-sm">@{profile.username}</p>}
+                {profile.username && <p className="text-blue-100 text-xs sm:text-sm">@{profile.username}</p>}
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 mb-6 text-white">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-6 mb-4 sm:mb-6 text-white">
             {address && (
-              <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                <span className="text-sm">{address}</span>
+              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                <MapPin className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                <span className="text-xs sm:text-sm truncate">{address}</span>
               </div>
             )}
             {profile.phone_number && (
-              <div className="flex items-center gap-2">
-                <Phone className="h-5 w-5" />
-                <span className="text-sm">{profile.phone_number}</span>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Phone className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                <span className="text-xs sm:text-sm truncate">{profile.phone_number}</span>
               </div>
             )}
             {profile.email && (
-              <div className="flex items-center gap-2">
-                <Mail className="h-5 w-5" />
-                <span className="text-sm">{profile.email}</span>
+              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 max-w-full">
+                <Mail className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                <span className="text-xs sm:text-sm truncate">{profile.email}</span>
               </div>
             )}
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              <span className="text-sm">{connections} Connections</span>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+              <span className="text-xs sm:text-sm">{connections} Connections</span>
             </div>
           </div>
 
           {specialties.length > 0 && (
-            <div className="flex items-center justify-between mb-6 w-full">
-              <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-0 w-full">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {specialties.map((specialty, index) => (
                   <span
                     key={index}
-                    className="px-3 py-1 text-white rounded-full text-sm font-medium"
+                    className="px-2 py-0.5 sm:px-3 sm:py-1 text-white rounded-full text-xs sm:text-sm font-medium"
                     style={{ backgroundColor: '#312e81' }}
                   >
                     {specialty}
@@ -786,7 +787,7 @@ export function UserProfileViewPageContent() {
                   setEditSection('specialties');
                   setShowEditModal(true);
                 }}
-                className="ml-3 text-xs font-semibold text-indigo-100 hover:text-white border border-indigo-100/60 px-2 py-1 rounded-full"
+                className="text-xs font-semibold text-indigo-100 hover:text-white border border-indigo-100/60 px-2 py-1 rounded-full flex-shrink-0"
               >
                 Edit
               </button>
@@ -795,13 +796,15 @@ export function UserProfileViewPageContent() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-1">
-          <div className="lg:col-span-2 space-y-4">
+      {/* Main content */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* Left column: Bio, Company, Social, Experience */}
+          <div className="lg:col-span-2 space-y-3 sm:space-y-4 order-2 lg:order-1">
             {profile.seller_bio && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-lg font-bold text-gray-900">Bio</h2>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <h2 className="text-base sm:text-lg font-bold text-gray-900">Bio</h2>
                   <button
                     type="button"
                     onClick={() => {
@@ -813,14 +816,14 @@ export function UserProfileViewPageContent() {
                     Edit
                   </button>
                 </div>
-                <p className="text-gray-700">{profile.seller_bio}</p>
+                <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{profile.seller_bio}</p>
               </div>
             )}
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <Building2 className="h-5 w-5" style={{ color: '#1846c6' }} />
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <h2 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <Building2 className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" style={{ color: '#1846c6' }} />
                   Company
                 </h2>
                 <button
@@ -840,7 +843,7 @@ export function UserProfileViewPageContent() {
                   className="block"
                 >
                   <div
-                    className="flex items-center gap-4 p-4 rounded-lg border bg-gray-50 hover:shadow-md transition-all"
+                    className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border bg-gray-50 hover:shadow-md transition-all"
                     style={{ borderColor: '#e5e7eb' }}
                     onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#1846c6')}
                     onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#e5e7eb')}
@@ -849,28 +852,28 @@ export function UserProfileViewPageContent() {
                       <img
                         src={company.logo_url}
                         alt={company.name}
-                        className="w-16 h-16 rounded-lg object-contain bg-white border border-gray-200 p-2"
+                        className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-contain bg-white border border-gray-200 p-1.5 sm:p-2 flex-shrink-0"
                       />
                     ) : (
-                      <div className="w-16 h-16 rounded-lg bg-white border border-gray-200" />
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-white border border-gray-200 flex-shrink-0" />
                     )}
-                    <div>
-                      <div className="font-semibold text-gray-900">{company.name}</div>
+                    <div className="min-w-0">
+                      <div className="font-semibold text-gray-900 text-sm sm:text-base truncate">{company.name}</div>
                       {company.country_name && (
-                        <div className="text-sm text-gray-500">{company.country_name}</div>
+                        <div className="text-xs sm:text-sm text-gray-500 truncate">{company.country_name}</div>
                       )}
                     </div>
                   </div>
                 </Link>
               ) : (
-                <p className="text-sm text-gray-500">No company linked yet.</p>
+                <p className="text-xs sm:text-sm text-gray-500">No company linked yet.</p>
               )}
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <LinkIcon className="h-5 w-5" style={{ color: '#1846c6' }} />
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <h2 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <LinkIcon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" style={{ color: '#1846c6' }} />
                   Social &amp; Links
                 </h2>
                 <button
@@ -884,10 +887,10 @@ export function UserProfileViewPageContent() {
                   Edit
                 </button>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="flex items-center gap-2 p-3 border border-gray-200 rounded-md">
-                  <Facebook className="h-5 w-5 text-blue-600" />
-                  <span className="text-sm text-gray-700">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                <div className="flex items-center gap-2 p-2.5 sm:p-3 border border-gray-200 rounded-md min-w-0">
+                  <Facebook className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm text-gray-700 truncate">
                     {profile.facebook_url ? (
                       <a
                         href={profile.facebook_url}
@@ -902,9 +905,9 @@ export function UserProfileViewPageContent() {
                     )}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 p-3 border border-gray-200 rounded-md">
-                  <Instagram className="h-5 w-5 text-pink-500" />
-                  <span className="text-sm text-gray-700">
+                <div className="flex items-center gap-2 p-2.5 sm:p-3 border border-gray-200 rounded-md min-w-0">
+                  <Instagram className="h-4 w-4 sm:h-5 sm:w-5 text-pink-500 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm text-gray-700 truncate">
                     {profile.instagram_url ? (
                       <a
                         href={profile.instagram_url}
@@ -919,9 +922,9 @@ export function UserProfileViewPageContent() {
                     )}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 p-3 border border-gray-200 rounded-md">
-                  <Twitter className="h-5 w-5 text-gray-700" />
-                  <span className="text-sm text-gray-700">
+                <div className="flex items-center gap-2 p-2.5 sm:p-3 border border-gray-200 rounded-md min-w-0">
+                  <Twitter className="h-4 w-4 sm:h-5 sm:w-5 text-gray-700 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm text-gray-700 truncate">
                     {profile.x_url ? (
                       <a
                         href={profile.x_url}
@@ -936,9 +939,9 @@ export function UserProfileViewPageContent() {
                     )}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 p-3 border border-gray-200 rounded-md">
-                  <Linkedin className="h-5 w-5 text-blue-700" />
-                  <span className="text-sm text-gray-700">
+                <div className="flex items-center gap-2 p-2.5 sm:p-3 border border-gray-200 rounded-md min-w-0">
+                  <Linkedin className="h-4 w-4 sm:h-5 sm:w-5 text-blue-700 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm text-gray-700 truncate">
                     {profile.linkedin_url ? (
                       <a
                         href={profile.linkedin_url}
@@ -953,9 +956,9 @@ export function UserProfileViewPageContent() {
                     )}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 p-3 border border-gray-200 rounded-md">
-                  <Globe className="h-5 w-5 text-green-600" />
-                  <span className="text-sm text-gray-700">
+                <div className="flex items-center gap-2 p-2.5 sm:p-3 border border-gray-200 rounded-md min-w-0">
+                  <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm text-gray-700 truncate">
                     {profile.website_url ? (
                       <a
                         href={profile.website_url}
@@ -974,9 +977,9 @@ export function UserProfileViewPageContent() {
             </div>
 
             {/* Experience Section */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-bold text-gray-900">Experience</h2>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <h2 className="text-base sm:text-lg font-bold text-gray-900">Experience</h2>
                 <button
                   type="button"
                   onClick={() => {
@@ -992,13 +995,14 @@ export function UserProfileViewPageContent() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
+          {/* Right sidebar: Profile Completion + Account Info (first on mobile for better organization) */}
+          <div className="space-y-3 sm:space-y-4 order-1 lg:order-2">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-5">
               <div className="flex items-center justify-between mb-1">
-                <h2 className="text-lg font-bold text-gray-900">Profile Completion</h2>
+                <h2 className="text-base sm:text-lg font-bold text-gray-900">Profile Completion</h2>
               </div>
-              <p className="text-sm text-gray-600 mb-4">Your profile is {completion}% complete</p>
-              <div className="w-full h-3 rounded-full bg-gray-200 overflow-hidden mb-4">
+              <p className="text-xs sm:text-sm text-gray-600 mb-3">Your profile is {completion}% complete</p>
+              <div className="w-full h-2.5 sm:h-3 rounded-full bg-gray-200 overflow-hidden mb-3">
                 <div
                   className="h-full transition-all duration-300"
                   style={{
@@ -1007,7 +1011,7 @@ export function UserProfileViewPageContent() {
                   }}
                 />
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-[11px] sm:text-xs text-gray-500 leading-snug">
                 Complete more fields (photo, contact info, company, social links) to reach 100%, build more trust,
                 and become eligible to earn{' '}
                 <span
@@ -1020,52 +1024,52 @@ export function UserProfileViewPageContent() {
               </p>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-bold text-gray-900">Account Info</h2>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <h2 className="text-base sm:text-lg font-bold text-gray-900">Account Info</h2>
               </div>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Joined:</span>
-                  <span className="text-sm font-medium text-gray-900">
+              <div className="space-y-2.5 sm:space-y-3">
+                <div className="flex justify-between items-center text-xs sm:text-sm">
+                  <span className="text-gray-600">Joined:</span>
+                  <span className="font-medium text-gray-900">
                     {new Date(profile.created_at).toLocaleDateString('en-GB')}
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Points:</span>
-                  <Link href="/points-rules" className="text-sm font-medium text-blue-600 hover:underline">
+                <div className="flex justify-between items-center text-xs sm:text-sm">
+                  <span className="text-gray-600">Points:</span>
+                  <Link href="/points-rules" className="font-medium text-blue-600 hover:underline">
                     {profile.points || 0}
                   </Link>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Premium:</span>
-                  <span className="text-sm font-medium text-gray-900">
+                <div className="flex justify-between items-center text-xs sm:text-sm">
+                  <span className="text-gray-600">Premium:</span>
+                  <span className="font-medium text-gray-900">
                     {profile.is_premium ? 'Yes' : 'No'}
                   </span>
                 </div>
                 {!profile.is_premium && (
-                  <div className="pt-2">
+                  <div className="pt-1 sm:pt-2">
                     <Link
                       href="/income-verification"
-                      className="inline-flex items-center justify-center w-full px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 hover:from-yellow-500 hover:via-yellow-600 hover:to-yellow-700 transition-all duration-200"
+                      className="inline-flex items-center justify-center w-full px-3 py-2 sm:px-4 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 hover:from-yellow-500 hover:via-yellow-600 hover:to-yellow-700 transition-all duration-200"
                     >
                       Apply for Premium
                     </Link>
                   </div>
                 )}
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Verified:</span>
-                  <span className="text-sm font-medium text-gray-900">
+                <div className="flex justify-between items-center text-xs sm:text-sm">
+                  <span className="text-gray-600">Verified:</span>
+                  <span className="font-medium text-gray-900">
                     {profile.is_verified ? 'Yes' : 'No'}
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Company linked:</span>
-                  <span className="text-sm font-medium text-gray-900">{company ? 'Yes' : 'No'}</span>
+                <div className="flex justify-between items-center text-xs sm:text-sm">
+                  <span className="text-gray-600">Company linked:</span>
+                  <span className="font-medium text-gray-900">{company ? 'Yes' : 'No'}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Connections:</span>
-                  <span className="text-sm font-medium text-gray-900">{connections}</span>
+                <div className="flex justify-between items-center text-xs sm:text-sm">
+                  <span className="text-gray-600">Connections:</span>
+                  <span className="font-medium text-gray-900">{connections}</span>
                 </div>
               </div>
             </div>
@@ -1075,10 +1079,10 @@ export function UserProfileViewPageContent() {
     </div>
 
     {showEditModal && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-        <div className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-lg shadow-xl overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
+        <div className="relative w-full max-w-4xl max-h-[90vh] sm:max-h-[85vh] bg-white rounded-t-2xl sm:rounded-lg shadow-xl overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 flex-shrink-0">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate pr-2">
               {editSection === 'avatar'
                 ? 'Change Profile Picture'
                 : editSection === 'bio'
@@ -1096,12 +1100,12 @@ export function UserProfileViewPageContent() {
             <button
               type="button"
               onClick={() => setShowEditModal(false)}
-              className="text-gray-500 hover:text-gray-700 text-sm font-medium"
+              className="text-gray-500 hover:text-gray-700 text-sm font-medium p-1 flex-shrink-0"
             >
               Close
             </button>
           </div>
-          <div className="overflow-y-auto max-h-[calc(90vh-3rem)] px-4 pb-4">
+          <div className="overflow-y-auto overflow-x-hidden flex-1 min-h-0 max-h-[calc(90vh-3.5rem)] px-3 sm:px-4 pb-4 sm:pb-6">
             {editSection === 'avatar' && (
               <AvatarEditForm
                 userId={profile.id}

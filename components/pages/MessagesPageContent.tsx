@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, handleSupabaseError } from '@/lib/supabase';
 import { ProfileImage } from '@/components/ProfileImage';
-import { Search, Send, Star, MoreVertical } from 'lucide-react';
+import { Search, Send, Star, MoreVertical, ChevronLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Message {
@@ -386,15 +386,20 @@ export function MessagesPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex max-w-5xl mx-auto" style={{ height: 'calc(100vh - 120px)' }}>
-        {/* Left Panel - Conversation List */}
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div
+        className="flex flex-col md:flex-row flex-1 min-h-0 max-w-5xl mx-auto w-full px-0 sm:px-2"
+        style={{ height: 'calc(100vh - 120px)', minHeight: '400px' }}
+      >
+        {/* Left Panel - Conversation List (hidden on mobile when chat is open) */}
         <div
-          className="w-64 md:w-72 border-r border-gray-200 bg-white flex flex-col"
-          style={{ height: 'calc(100vh - 120px)' }}
+          className={`flex flex-col w-full md:w-64 lg:w-72 border-r border-gray-200 bg-white flex-shrink-0 ${
+            selectedConversation ? 'hidden md:flex' : 'flex'
+          }`}
+          style={{ height: 'calc(100vh - 120px)', minHeight: '400px' }}
         >
           <div className="px-3 md:px-4 py-3 border-b border-gray-200">
-            <h1 className="text-lg font-semibold text-gray-900 mb-2">Messaging</h1>
+            <h1 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">Messaging</h1>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
@@ -422,7 +427,7 @@ export function MessagesPageContent() {
                     type="button"
                     key={conversation.userId}
                     onClick={() => setSelectedConversation(conversation.userId)}
-                    className={`w-full text-left p-4 hover:bg-gray-50 transition-colors ${
+                    className={`w-full text-left p-3 sm:p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors ${
                       selectedConversation === conversation.userId ? 'bg-green-50' : ''
                     }`}
                   >
@@ -463,13 +468,26 @@ export function MessagesPageContent() {
           </div>
         </div>
 
-        {/* Right Panel - Active Chat */}
-        <div className="flex-1 flex flex-col bg-white" style={{ height: 'calc(100vh - 120px)' }}>
+        {/* Right Panel - Active Chat (hidden on mobile when no conversation selected) */}
+        <div
+          className={`flex-1 flex flex-col bg-white min-w-0 ${
+            !selectedConversation ? 'hidden md:flex' : 'flex'
+          }`}
+          style={{ height: 'calc(100vh - 120px)', minHeight: '400px' }}
+        >
           {selectedConversation && selectedConv ? (
             <>
-              <div className="px-3 md:px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
+              <div className="px-3 md:px-4 py-2.5 sm:py-3 border-b border-gray-200 flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setSelectedConversation(null)}
+                  className="md:hidden p-2 -ml-1 hover:bg-gray-100 rounded-full transition-colors"
+                  aria-label="Back to conversations"
+                >
+                  <ChevronLeft className="h-5 w-5 text-gray-600" />
+                </button>
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <div className="relative flex-shrink-0">
                     <ProfileImage
                       imageUrl={selectedConv.imageUrl}
                       username={selectedConv.username}
@@ -479,25 +497,25 @@ export function MessagesPageContent() {
                       <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-400 rounded-full border-2 border-white" />
                     )}
                   </div>
-                  <div>
-                    <h2 className="text-sm font-semibold text-gray-900">{selectedConv.fullName}</h2>
+                  <div className="min-w-0">
+                    <h2 className="text-sm font-semibold text-gray-900 truncate">{selectedConv.fullName}</h2>
                     <p className="text-xs text-gray-500">
                       {isOnline ? 'Active now' : formatLastSeen(selectedConv.lastSeen)}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <button type="button" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                    <Star className="h-5 w-5 text-gray-400" />
+                    <Star className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                   </button>
                   <button type="button" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                    <MoreVertical className="h-5 w-5 text-gray-400" />
+                    <MoreVertical className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                   </button>
                 </div>
               </div>
-              <div className="flex-1 overflow-y-auto px-3 md:px-4 py-3 space-y-3">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 md:px-4 py-3 space-y-3 min-h-0">
                 {messages.length === 0 ? (
-                  <div className="text-center text-gray-500 mt-8">No messages yet. Start the conversation!</div>
+                  <div className="text-center text-gray-500 mt-8 text-sm sm:text-base">No messages yet. Start the conversation!</div>
                 ) : (
                   messages.map((message) => (
                     <div
@@ -505,7 +523,7 @@ export function MessagesPageContent() {
                       className={`flex ${message.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-[75%] ${
+                        className={`max-w-[85%] sm:max-w-[75%] ${
                           message.sender_id === user.id
                             ? 'bg-indigo-600 text-white rounded-l-lg rounded-tr-lg'
                             : 'bg-gray-100 text-gray-900 rounded-r-lg rounded-tl-lg'
@@ -543,8 +561,8 @@ export function MessagesPageContent() {
                   </div>
                 </div>
               )}
-              <div className="px-3 md:px-4 py-3 border-t border-gray-200">
-                <div className="flex items-end gap-2">
+              <div className="px-3 md:px-4 py-2 sm:py-3 border-t border-gray-200 flex-shrink-0 bg-white">
+                <div className="flex items-end gap-2 w-full">
                   <textarea
                     ref={inputRef}
                     value={newMessage}
@@ -552,14 +570,14 @@ export function MessagesPageContent() {
                     onKeyDown={handleKeyDown}
                     placeholder="Write a message..."
                     rows={1}
-                    className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-                    style={{ minHeight: '36px', maxHeight: '100px' }}
+                    className="flex-1 min-w-0 px-3 py-2 sm:py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                    style={{ minHeight: '40px', maxHeight: '100px' }}
                   />
                   <button
                     type="button"
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim()}
-                    className="p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="p-2 sm:p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
                   >
                     <Send className="h-5 w-5" />
                   </button>
@@ -567,9 +585,9 @@ export function MessagesPageContent() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center">
+            <div className="flex-1 flex items-center justify-center p-4">
               <div className="text-center">
-                <p className="text-gray-500 text-lg">Select a conversation to start messaging</p>
+                <p className="text-gray-500 text-sm sm:text-lg">Select a conversation to start messaging</p>
               </div>
             </div>
           )}

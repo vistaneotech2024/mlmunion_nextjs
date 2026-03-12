@@ -5,7 +5,8 @@ export async function middleware(request: NextRequest) {
   try {
     return await updateSession(request)
   } catch {
-    return NextResponse.next()
+    // Ensure edge never crashes on Netlify
+    return NextResponse.next({ request })
   }
 }
 

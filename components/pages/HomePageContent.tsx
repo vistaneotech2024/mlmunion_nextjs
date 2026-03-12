@@ -1873,8 +1873,8 @@ export function HomePageContent() {
   return (
     <>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
           {/* Left sidebar - Profile card + Main menu + Explore */}
           <aside className="lg:w-56 flex-shrink-0 order-2 lg:order-1">
             <div className="sticky top-4 space-y-4">
@@ -1986,10 +1986,10 @@ export function HomePageContent() {
             </div>
           </aside>
 
-          {/* Center - Feed */}
-          <div className="flex-1 min-w-0 order-1 lg:order-2 max-w-2xl mx-auto lg:mx-0">
+          {/* Center - Feed: full width on mobile, left-aligned; centered on lg */}
+          <div className="flex-1 min-w-0 order-1 lg:order-2 w-full max-w-2xl ml-0 mr-auto lg:mx-0">
             {/* What's New composer */}
-            <div className="bg-white rounded-none border border-gray-200 shadow-sm p-4 mb-6">
+            <div className="bg-white rounded-none border border-gray-200 shadow-sm p-3 sm:p-4 mb-4 sm:mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-none bg-indigo-100 flex items-center justify-center flex-shrink-0">
                   <User className="h-5 w-5 text-indigo-600" />
