@@ -662,6 +662,153 @@ Content excerpt: ${plainTextExcerpt}`;
 }
 
 /**
+ * Generate an SEO-optimized company description and SEO fields using AI.
+ * Returns a description in plain text (not HTML) plus meta fields.
+ */
+export async function generateCompanyDescription(
+  params: GenerateDescriptionParams,
+  provider: 'gpt' | 'gemini' | 'claude' | 'other' = 'gpt',
+  model?: string
+): Promise<{
+  name: string;
+  description: string;
+  meta_description?: string;
+  meta_keywords?: string;
+  focus_keyword?: string;
+}> {
+  const targetLanguage = params.language && params.language !== 'Other' ? params.language : 'English';
+
+  const defaultModel =
+    model || (provider === 'gpt' ? 'gpt-4' : provider === 'gemini' ? 'gemini-pro' : 'claude-3-opus');
+  const apiKeyConfig = await getActiveApiKey(provider, defaultModel);
+  const { api_key: API_KEY, model: activeModel } = apiKeyConfig;
+
+  if (!API_KEY) {
+    throw new Error('No active API key configured. Please configure an API key in Admin Settings > API Settings.');
+  }
+
+  if (apiKeyConfig.provider !== 'gpt') {
+    throw new Error(`AI provider "${apiKeyConfig.provider}" is not yet supported. Please use GPT provider.`);
+  }
+
+  const apiUrl = 'https://api.openai.com/v1/chat/completions';
+
+  const systemPrompt =
+    `You write high-quality SEO copy for MLM / Direct Selling company profiles. ` +
+    `Always respond in ${targetLanguage} only.`;
+
+  const baseUserPrompt = `Create content for an MLM / Direct Selling company profile.
+
+Inputs:
+- Company name: ${params.title || 'Auto-generate from context'}
+- Context: ${params.shortDescription}
+
+Output requirements:
+1) A company name (if not provided) that matches the context.
+2) A detailed, research-style company description in **4 to 8 paragraphs**.
+   - Each paragraph should be ~90–140 words.
+   - Minimum total length: **550 words**.
+   - Write in an informative, neutral tone (no hype).
+   - Cover: company overview, product/service focus, business model / compensation (high-level), typical target audience, operations/geographies, pros & cons, and a responsible conclusion.
+   - If any facts are not verifiable from the given context, state them as possibilities using cautious wording (e.g., "may", "typically", "often") and avoid making up precise claims, numbers, awards, or legal statements.
+   - Separate paragraphs with a blank line.
+3) META_DESCRIPTION: max 155 characters
+4) META_KEYWORDS: 6-10 comma-separated keywords
+5) FOCUS_KEYWORD: 1 main keyword or short phrase
+
+Format exactly as:
+NAME: ...
+DESCRIPTION: ...
+META_DESCRIPTION: ...
+META_KEYWORDS: ...
+FOCUS_KEYWORD: ...
+`;
+
+  async function runOnce(expand: boolean): Promise<{
+    raw: string;
+    name: string;
+    description: string;
+    meta_description: string;
+    meta_keywords: string;
+    focus_keyword: string;
+  }> {
+    const expandHint = expand
+      ? `\n\nIMPORTANT: Your previous output was too short. Expand the DESCRIPTION to meet all requirements (4–8 paragraphs, ~90–140 words each, minimum 550 words total). Keep the same output format.`
+      : '';
+    const userPrompt = baseUserPrompt + expandHint;
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: activeModel,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.7,
+        max_tokens: 1700,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error?.message || `OpenAI API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const raw: string = (data.choices?.[0]?.message?.content || '').trim();
+    if (!raw) throw new Error('No content generated from OpenAI');
+
+    const name = (raw.match(/^NAME:\s*(.*)$/mi)?.[1] || params.title || '').trim();
+    const description = (raw.match(/^DESCRIPTION:\s*([\s\S]*?)(?=^\w+?:|\Z)/mi)?.[1] || '').trim();
+    const meta_description = (raw.match(/^META_DESCRIPTION:\s*(.*)$/mi)?.[1] || '').trim();
+    const meta_keywords = (raw.match(/^META_KEYWORDS:\s*(.*)$/mi)?.[1] || '').trim();
+    const focus_keyword = (raw.match(/^FOCUS_KEYWORD:\s*(.*)$/mi)?.[1] || '').trim();
+
+    return { raw, name, description, meta_description, meta_keywords, focus_keyword };
+  }
+
+  function countParagraphs(desc: string): number {
+    const blocks = desc
+      .split(/\n\s*\n/g)
+      .map((p) => p.trim())
+      .filter(Boolean);
+    // If the model returns a single block with line breaks, treat that as 1.
+    return blocks.length || (desc.trim() ? 1 : 0);
+  }
+
+  function wordCount(desc: string): number {
+    return (desc.match(/\S+/g) || []).length;
+  }
+
+  // Try once; if too short / wrong paragraph count, retry once with expansion hint.
+  const first = await runOnce(false);
+  const firstParas = countParagraphs(first.description);
+  const firstWords = wordCount(first.description);
+  const okFirst = firstParas >= 4 && firstParas <= 8 && firstWords >= 520;
+
+  const final = okFirst ? first : await runOnce(true);
+
+  const name = final.name;
+  const description = final.description;
+  const meta_description = final.meta_description;
+  const meta_keywords = final.meta_keywords;
+  const focus_keyword = final.focus_keyword;
+
+  return {
+    name,
+    description,
+    meta_description: meta_description ? meta_description.substring(0, 160) : undefined,
+    meta_keywords: meta_keywords || undefined,
+    focus_keyword: focus_keyword || undefined,
+  };
+}
+
+/**
  * Generate an English, URL-safe slug based on a (possibly non-English) title.
  * Used when the normal ASCII slug generator cannot create a meaningful slug.
  */

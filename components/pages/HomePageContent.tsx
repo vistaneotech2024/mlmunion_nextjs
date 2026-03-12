@@ -7,6 +7,12 @@ import { Hero } from '@/components/Hero';
 import { supabase } from '@/lib/supabase';
 import { cache } from '@/lib/cache';
 import { useAuth } from '@/contexts/AuthContext';
+import { AIBlogGenerator } from '@/components/AIBlogGenerator';
+import { CreateBlogModal } from '@/components/CreateBlogModal';
+import { AIClassifiedGenerator } from '@/components/AIClassifiedGenerator';
+import { CreateClassifiedModal } from '@/components/CreateClassifiedModal';
+import { AICompanyGenerator } from '@/components/AICompanyGenerator';
+import { CreateCompanyModal } from '@/components/CreateCompanyModal';
 import {
   MessageSquare,
   Users,
@@ -1488,6 +1494,38 @@ export function HomePageContent() {
   const loadingRef = React.useRef(false);
   const sentinelRef = React.useRef<HTMLDivElement | null>(null);
   const [profile, setProfile] = React.useState<UserProfile | null>(null);
+  const [composerOpen, setComposerOpen] = React.useState(false);
+  const composerRef = React.useRef<HTMLDivElement | null>(null);
+  const [blogChoiceOpen, setBlogChoiceOpen] = React.useState(false);
+  const [blogAIOpen, setBlogAIOpen] = React.useState(false);
+  const [blogCreateOpen, setBlogCreateOpen] = React.useState(false);
+  const [blogCreateInitialData, setBlogCreateInitialData] = React.useState<{
+    title?: string;
+    content?: string;
+    meta_description?: string;
+    meta_keywords?: string;
+    focus_keyword?: string;
+  } | undefined>();
+  const [classifiedChoiceOpen, setClassifiedChoiceOpen] = React.useState(false);
+  const [classifiedAIOpen, setClassifiedAIOpen] = React.useState(false);
+  const [classifiedCreateOpen, setClassifiedCreateOpen] = React.useState(false);
+  const [classifiedCreateInitialData, setClassifiedCreateInitialData] = React.useState<{
+    title?: string;
+    description?: string;
+    meta_description?: string;
+    meta_keywords?: string;
+    focus_keyword?: string;
+  } | undefined>();
+  const [companyChoiceOpen, setCompanyChoiceOpen] = React.useState(false);
+  const [companyAIOpen, setCompanyAIOpen] = React.useState(false);
+  const [companyCreateOpen, setCompanyCreateOpen] = React.useState(false);
+  const [companyCreateInitialData, setCompanyCreateInitialData] = React.useState<{
+    name?: string;
+    description?: string;
+    meta_description?: string;
+    meta_keywords?: string;
+    focus_keyword?: string;
+  } | undefined>();
 
   React.useEffect(() => {
     if (!user?.id) {
@@ -1573,6 +1611,113 @@ export function HomePageContent() {
     observer.observe(el);
     return () => observer.disconnect();
   }, [hasMore, feedItems.length]);
+
+  React.useEffect(() => {
+    if (!composerOpen) return;
+
+    const onMouseDown = (e: MouseEvent) => {
+      const root = composerRef.current;
+      if (!root) return;
+      if (e.target instanceof Node && !root.contains(e.target)) {
+        setComposerOpen(false);
+      }
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setComposerOpen(false);
+    };
+
+    document.addEventListener('mousedown', onMouseDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onMouseDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [composerOpen]);
+
+  React.useEffect(() => {
+    if (!blogChoiceOpen) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setBlogChoiceOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [blogChoiceOpen]);
+
+  React.useEffect(() => {
+    if (!classifiedChoiceOpen) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setClassifiedChoiceOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [classifiedChoiceOpen]);
+
+  React.useEffect(() => {
+    if (!companyChoiceOpen) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setCompanyChoiceOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [companyChoiceOpen]);
+
+  const handleBlogAIGenerated = (
+    title: string,
+    content: string,
+    meta_description?: string,
+    meta_keywords?: string,
+    focus_keyword?: string
+  ) => {
+    setBlogAIOpen(false);
+    setBlogCreateInitialData({
+      title,
+      content,
+      meta_description,
+      meta_keywords,
+      focus_keyword,
+    });
+    setBlogCreateOpen(true);
+  };
+
+  const handleClassifiedAIGenerated = (
+    title: string,
+    description: string,
+    meta_description?: string,
+    meta_keywords?: string,
+    focus_keyword?: string
+  ) => {
+    setClassifiedAIOpen(false);
+    setClassifiedCreateInitialData({
+      title,
+      description,
+      meta_description,
+      meta_keywords,
+      focus_keyword,
+    });
+    setClassifiedCreateOpen(true);
+  };
+
+  const handleCompanyAIGenerated = (
+    name: string,
+    description: string,
+    meta_description?: string,
+    meta_keywords?: string,
+    focus_keyword?: string
+  ) => {
+    setCompanyAIOpen(false);
+    setCompanyCreateInitialData({
+      name,
+      description,
+      meta_description,
+      meta_keywords,
+      focus_keyword,
+    });
+    setCompanyCreateOpen(true);
+  };
 
   async function loadInitialFeed() {
     try {
@@ -1989,15 +2134,24 @@ export function HomePageContent() {
           {/* Center - Feed: full width on mobile, left-aligned; centered on lg */}
           <div className="flex-1 min-w-0 order-1 lg:order-2 w-full max-w-2xl ml-0 mr-auto lg:mx-0">
             {/* What's New composer */}
-            <div className="bg-white rounded-none border border-gray-200 shadow-sm p-3 sm:p-4 mb-4 sm:mb-6">
+            <div
+              ref={composerRef}
+              className="bg-white rounded-none border border-gray-200 shadow-sm p-3 sm:p-4 mb-4 sm:mb-6 relative"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-none bg-indigo-100 flex items-center justify-center flex-shrink-0">
                   <User className="h-5 w-5 text-indigo-600" />
                 </div>
                 <div className="flex-1">
-                  <Link href="/blog" className="block w-full text-left px-4 py-2.5 rounded-none border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors text-sm">
+                  <button
+                    type="button"
+                    onClick={() => setComposerOpen((v) => !v)}
+                    aria-haspopup="menu"
+                    aria-expanded={composerOpen}
+                    className="block w-full text-left px-4 py-2.5 rounded-none border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors text-sm"
+                  >
                     What&apos;s New?
-                  </Link>
+                  </button>
                 </div>
                 <div className="flex items-center gap-1 text-gray-400">
                   <button type="button" className="p-2 rounded-none hover:bg-gray-100" aria-label="Emoji">
@@ -2011,7 +2165,271 @@ export function HomePageContent() {
                   </button>
                 </div>
               </div>
+
+              {composerOpen && (
+                <div
+                  role="menu"
+                  aria-label="Create menu"
+                  className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 shadow-lg rounded-none overflow-hidden z-20"
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setComposerOpen(false);
+                      setBlogChoiceOpen(true);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <FileText className="h-4 w-4 text-orange-600" />
+                    <span className="font-semibold">Post Blog</span>
+                  </button>
+                  <Link
+                    role="menuitem"
+                    href="/classifieds/new"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setComposerOpen(false);
+                      setClassifiedChoiceOpen(true);
+                    }}
+                    className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <MessageSquare className="h-4 w-4 text-teal-600" />
+                    <span className="font-semibold">Post Free Classified</span>
+                  </Link>
+                  <Link
+                    href="/companies/new"
+                    role="menuitem"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setComposerOpen(false);
+                      setCompanyChoiceOpen(true);
+                    }}
+                    className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
+                  >
+                    <Building2 className="h-4 w-4 text-purple-700" />
+                    <span className="font-semibold">Add New Company</span>
+                  </Link>
+                </div>
+              )}
             </div>
+
+            {/* Post Blog: choose AI vs manual */}
+            {blogChoiceOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-4">
+                <div
+                  className="absolute inset-0 bg-black/40"
+                  onClick={() => setBlogChoiceOpen(false)}
+                />
+                <div className="relative w-full max-w-md bg-white border border-gray-200 shadow-xl rounded-none overflow-hidden">
+                  <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <div className="font-bold text-gray-900">Post Blog</div>
+                    <button
+                      type="button"
+                      onClick={() => setBlogChoiceOpen(false)}
+                      className="p-2 rounded-none hover:bg-gray-100 text-gray-600"
+                      aria-label="Close"
+                    >
+                      <MoreHorizontal className="h-5 w-5" />
+                    </button>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBlogChoiceOpen(false);
+                        setBlogCreateInitialData(undefined);
+                        setBlogCreateOpen(true);
+                      }}
+                      className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 hover:bg-gray-50 transition-colors rounded-none"
+                    >
+                      <span className="flex items-center gap-3">
+                        <Pencil className="h-4 w-4 text-indigo-700" />
+                        <span className="font-semibold text-gray-900">Create Manual</span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBlogChoiceOpen(false);
+                        setBlogCreateInitialData(undefined);
+                        setBlogAIOpen(true);
+                      }}
+                      className="w-full flex items-center justify-between px-4 py-3 border border-purple-200 bg-purple-50/40 hover:bg-purple-50 transition-colors rounded-none"
+                    >
+                      <span className="flex items-center gap-3">
+                        <Sparkles className="h-4 w-4 text-purple-700" />
+                        <span className="font-semibold text-gray-900">Generate with AI</span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <AIBlogGenerator
+              isOpen={blogAIOpen}
+              onClose={() => setBlogAIOpen(false)}
+              onGenerated={handleBlogAIGenerated}
+            />
+
+            <CreateBlogModal
+              isOpen={blogCreateOpen}
+              onClose={() => {
+                setBlogCreateOpen(false);
+                setBlogCreateInitialData(undefined);
+              }}
+              onSuccess={() => {
+                // Optional: refresh feed so the new post can appear.
+                loadInitialFeed();
+              }}
+              initialData={blogCreateInitialData}
+            />
+
+            {/* Post Free Classified: choose AI vs manual */}
+            {classifiedChoiceOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-4">
+                <div className="absolute inset-0 bg-black/40" onClick={() => setClassifiedChoiceOpen(false)} />
+                <div className="relative w-full max-w-md bg-white border border-gray-200 shadow-xl rounded-none overflow-hidden">
+                  <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <div className="font-bold text-gray-900">Post Free Classified</div>
+                    <button
+                      type="button"
+                      onClick={() => setClassifiedChoiceOpen(false)}
+                      className="p-2 rounded-none hover:bg-gray-100 text-gray-600"
+                      aria-label="Close"
+                    >
+                      <MoreHorizontal className="h-5 w-5" />
+                    </button>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setClassifiedChoiceOpen(false);
+                        setClassifiedCreateInitialData(undefined);
+                        setClassifiedCreateOpen(true);
+                      }}
+                      className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 hover:bg-gray-50 transition-colors rounded-none"
+                    >
+                      <span className="flex items-center gap-3">
+                        <Pencil className="h-4 w-4 text-indigo-700" />
+                        <span className="font-semibold text-gray-900">Create Manual</span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setClassifiedChoiceOpen(false);
+                        setClassifiedCreateInitialData(undefined);
+                        setClassifiedAIOpen(true);
+                      }}
+                      className="w-full flex items-center justify-between px-4 py-3 border border-purple-200 bg-purple-50/40 hover:bg-purple-50 transition-colors rounded-none"
+                    >
+                      <span className="flex items-center gap-3">
+                        <Sparkles className="h-4 w-4 text-purple-700" />
+                        <span className="font-semibold text-gray-900">Generate with AI</span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <AIClassifiedGenerator
+              isOpen={classifiedAIOpen}
+              onClose={() => setClassifiedAIOpen(false)}
+              onGenerated={handleClassifiedAIGenerated}
+            />
+
+            <CreateClassifiedModal
+              isOpen={classifiedCreateOpen}
+              onClose={() => {
+                setClassifiedCreateOpen(false);
+                setClassifiedCreateInitialData(undefined);
+              }}
+              onSuccess={() => {
+                loadInitialFeed();
+              }}
+              initialData={classifiedCreateInitialData}
+            />
+
+            {/* Add New Company: choose AI vs manual */}
+            {companyChoiceOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-4">
+                <div className="absolute inset-0 bg-black/40" onClick={() => setCompanyChoiceOpen(false)} />
+                <div className="relative w-full max-w-md bg-white border border-gray-200 shadow-xl rounded-none overflow-hidden">
+                  <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <div className="font-bold text-gray-900">Add New Company</div>
+                    <button
+                      type="button"
+                      onClick={() => setCompanyChoiceOpen(false)}
+                      className="p-2 rounded-none hover:bg-gray-100 text-gray-600"
+                      aria-label="Close"
+                    >
+                      <MoreHorizontal className="h-5 w-5" />
+                    </button>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCompanyChoiceOpen(false);
+                        setCompanyCreateInitialData(undefined);
+                        setCompanyCreateOpen(true);
+                      }}
+                      className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 hover:bg-gray-50 transition-colors rounded-none"
+                    >
+                      <span className="flex items-center gap-3">
+                        <Pencil className="h-4 w-4 text-indigo-700" />
+                        <span className="font-semibold text-gray-900">Create Manual</span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCompanyChoiceOpen(false);
+                        setCompanyCreateInitialData(undefined);
+                        setCompanyAIOpen(true);
+                      }}
+                      className="w-full flex items-center justify-between px-4 py-3 border border-purple-200 bg-purple-50/40 hover:bg-purple-50 transition-colors rounded-none"
+                    >
+                      <span className="flex items-center gap-3">
+                        <Sparkles className="h-4 w-4 text-purple-700" />
+                        <span className="font-semibold text-gray-900">Generate with AI</span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <AICompanyGenerator
+              isOpen={companyAIOpen}
+              onClose={() => setCompanyAIOpen(false)}
+              onGenerated={handleCompanyAIGenerated}
+            />
+
+            <CreateCompanyModal
+              isOpen={companyCreateOpen}
+              onClose={() => {
+                setCompanyCreateOpen(false);
+                setCompanyCreateInitialData(undefined);
+              }}
+              onSuccess={() => {
+                loadInitialFeed();
+              }}
+              initialData={companyCreateInitialData}
+            />
 
             {/* Feed list */}
             {loading ? (

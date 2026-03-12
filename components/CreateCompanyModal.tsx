@@ -40,9 +40,10 @@ interface CreateCompanyModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  initialData?: Partial<Pick<CompanyFormData, 'name' | 'description' | 'meta_description' | 'meta_keywords' | 'focus_keyword'>>;
 }
 
-export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompanyModalProps) {
+export function CreateCompanyModal({ isOpen, onClose, onSuccess, initialData }: CreateCompanyModalProps) {
   const { user } = useAuth();
   const { categories } = useCachedCompanyCategories();
   const [submitting, setSubmitting] = React.useState(false);
@@ -76,6 +77,17 @@ export function CreateCompanyModal({ isOpen, onClose, onSuccess }: CreateCompany
       setSelectedStateId(undefined);
     }
   }, [isOpen, reset]);
+
+  // Load initial data when opening
+  React.useEffect(() => {
+    if (!isOpen) return;
+    if (!initialData) return;
+    if (initialData.name) setValue('name', initialData.name);
+    if (initialData.description) setValue('description', initialData.description);
+    if (initialData.meta_description) setValue('meta_description', initialData.meta_description);
+    if (initialData.meta_keywords) setValue('meta_keywords', initialData.meta_keywords);
+    if (initialData.focus_keyword) setValue('focus_keyword', initialData.focus_keyword);
+  }, [isOpen, initialData, setValue]);
 
   // Update country_id when country code changes
   React.useEffect(() => {
