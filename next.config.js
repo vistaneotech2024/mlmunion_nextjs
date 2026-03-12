@@ -1,4 +1,5 @@
 const webpack = require('webpack');
+const path = require('path');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -35,6 +36,13 @@ const nextConfig = {
   
   // Reduce inline scripts and data
   webpack: (config, { isServer, dev }) => {
+    // Ensure @ alias works in all environments (Netlify, etc.)
+    config.resolve = config.resolve || {};
+    config.resolve.alias = {
+      ...(config.resolve.alias || {}),
+      '@': path.resolve(__dirname),
+    };
+
     // Ignore Supabase Edge Functions files
     config.plugins.push(
       new webpack.IgnorePlugin({
