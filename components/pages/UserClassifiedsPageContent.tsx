@@ -261,7 +261,7 @@ export function UserClassifiedsPageContent() {
                 className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow flex flex-col"
               >
                 {/* Image */}
-                <div className="relative h-32 sm:h-40 lg:h-48 bg-gray-100">
+                <div className="relative bg-gray-100 aspect-[1200/630]">
                   {classified.image_url ? (
                     <img
                       src={classified.image_url}

@@ -519,15 +519,17 @@ export function AdminClassifiedsPageContent() {
                 className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 flex flex-col hover:shadow-md transition-shadow"
               >
                 {/* Image */}
-                <div className="w-full h-48 flex-shrink-0 bg-gray-100 overflow-hidden">
+                <div className="w-full flex-shrink-0 bg-gray-100 overflow-hidden">
                   {classified.image_url ? (
-                    <img
-                      src={classified.image_url}
-                      alt={classified.title}
-                      className="w-full h-full object-cover"
-                    />
+                    <div className="w-full overflow-hidden aspect-[1200/630]">
+                      <img
+                        src={classified.image_url}
+                        alt={classified.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm py-6">
                       No image
                     </div>
                   )}

@@ -404,159 +404,23 @@ export function CompaniesPageContent() {
   }, [currentPage]);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 md:py-8">
+    <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-indigo-50 py-4 md:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Featured Companies Carousels */}
-        {!loadingFeatured && (trustedCompanies.length > 0 || topVotedCompanies.length > 0) && (
-          <div className="mb-8 space-y-6">
-            {/* MLM Union Trusted Section */}
-            {trustedCompanies.length > 0 && (
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4 md:p-6 shadow-md">
-                <div className="flex items-center gap-2 mb-4">
-                  <Award className="h-5 w-5 md:h-6 md:w-6 text-indigo-600" />
-                  <h2 className="text-lg md:text-xl font-bold text-gray-900">MLM Union Trusted</h2>
-                </div>
-                <div className="relative overflow-hidden">
-                  <div className="flex animate-scroll-left">
-                    {/* Duplicate items for seamless loop */}
-                    {[...trustedCompanies, ...trustedCompanies].map((company, index) => (
-                      <Link
-                        key={`${company.id}-${index}`}
-                        href={`/company/${countryNameToSlug(company.country_name || countries.find(c => c.code === company.country)?.name || company.country)}/${company.slug || company.id}`}
-                        className="flex-shrink-0 w-48 md:w-56 mx-2 bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-200 border border-gray-200 hover:border-indigo-500 overflow-hidden relative"
-                      >
-                        {/* Voting icon in top right */}
-                        <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md shadow-sm z-10">
-                          <img 
-                            src="/vote_7989058.png" 
-                            alt="Votes" 
-                            className="h-5 w-5 md:h-6 md:w-6 object-contain"
-                          />
-                          <span className="text-xs md:text-sm font-semibold text-indigo-700">{company.vote_count || 0}</span>
-                        </div>
-                        <div className="p-3 md:p-4 flex flex-col h-full">
-                          <div className="w-16 h-16 md:w-20 md:h-20 mb-2 flex items-center justify-center bg-gray-100 overflow-hidden rounded mx-auto">
-                            {company.logo_url ? (
-                              <img
-                                src={company.logo_url}
-                                alt={company.name}
-                                className="w-full h-full object-contain p-2"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.style.display = 'none';
-                                  const parent = target.parentElement;
-                                  if (parent) {
-                                    parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400 text-xs font-semibold">${company.name.charAt(0).toUpperCase()}</div>`;
-                                  }
-                                }}
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-semibold">
-                                {company.name.charAt(0).toUpperCase()}
-                              </div>
-                            )}
-                          </div>
-                          <h3 className="text-sm md:text-base font-semibold text-gray-900 mb-1.5 text-center line-clamp-2">{company.name}</h3>
-                          <div className="flex items-center justify-center mb-2">
-                            <div className="flex items-center">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <Star
-                                  key={star}
-                                  className={`h-3 w-3 ${
-                                    star <= Math.round(company.average_rating || 0)
-                                      ? 'text-yellow-400 fill-current'
-                                      : 'text-gray-300'
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                            <span className="ml-1 text-xs text-gray-500">
-                              ({company.total_votes || 0})
-                            </span>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+        {/* Featured Companies Carousels removed per design request */}
 
-            {/* Top Voted Section */}
-            {topVotedCompanies.length > 0 && (
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 md:p-6 shadow-md">
-                <div className="flex items-center gap-2 mb-4">
-                  <TrendingUp className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
-                  <h2 className="text-lg md:text-xl font-bold text-gray-900">Top Voted Companies</h2>
-                </div>
-                <div className="relative overflow-hidden">
-                  <div className="flex animate-scroll-left-reverse">
-                    {/* Duplicate items for seamless loop */}
-                    {[...topVotedCompanies, ...topVotedCompanies].map((company, index) => (
-                      <Link
-                        key={`${company.id}-${index}`}
-                        href={`/company/${countryNameToSlug(company.country_name || countries.find(c => c.code === company.country)?.name || company.country)}/${company.slug || company.id}`}
-                        className="flex-shrink-0 w-48 md:w-56 mx-2 bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-200 border border-gray-200 hover:border-blue-500 overflow-hidden"
-                      >
-                        <div className="p-3 md:p-4 flex flex-col h-full">
-                          <div className="w-16 h-16 md:w-20 md:h-20 mb-2 flex items-center justify-center bg-gray-100 overflow-hidden rounded mx-auto">
-                            {company.logo_url ? (
-                              <img
-                                src={company.logo_url}
-                                alt={company.name}
-                                className="w-full h-full object-contain p-2"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.style.display = 'none';
-                                  const parent = target.parentElement;
-                                  if (parent) {
-                                    parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400 text-xs font-semibold">${company.name.charAt(0).toUpperCase()}</div>`;
-                                  }
-                                }}
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-semibold">
-                                {company.name.charAt(0).toUpperCase()}
-                              </div>
-                            )}
-                          </div>
-                          <h3 className="text-sm md:text-base font-semibold text-gray-900 mb-1.5 text-center line-clamp-2">{company.name}</h3>
-                          <div className="flex items-center justify-center mb-2">
-                            <div className="flex items-center">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <Star
-                                  key={star}
-                                  className={`h-3 w-3 ${
-                                    star <= Math.round(company.average_rating || 0)
-                                      ? 'text-yellow-400 fill-current'
-                                      : 'text-gray-300'
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                            <span className="ml-1 text-xs text-gray-500">
-                              ({company.total_votes || 0})
-                            </span>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="flex flex-row items-center justify-between gap-2 sm:gap-3 mb-3 md:mb-4 flex-wrap">
+        <div className="mb-3 md:mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2 sm:gap-3">
           <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 pb-1 sm:pb-2 md:pb-3 border-b-2 md:border-b-4 border-indigo-600 inline-block whitespace-nowrap">Companies</h1>
-            
-            {/* Add Company Button - Mobile: next to title */}
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 pb-1 sm:pb-2 md:pb-3 border-b-2 md:border-b-4 border-indigo-600 inline-block whitespace-nowrap">
+              Top Direct Selling Companies
+            </h1>
+          </div>
+
+          {/* Mobile Add + Filter buttons (second line on small screens) */}
+          <div className="flex items-center gap-2 sm:gap-3 md:hidden">
             {user && (
               <button
                 onClick={() => router.push('/my-companies')}
-                className="md:hidden group relative flex items-center gap-1.5 sm:gap-2 px-2 py-1.5 sm:px-3 sm:py-2 bg-gradient-to-b from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-lg sm:rounded-xl font-bold text-[10px] sm:text-xs shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-300 border-2 border-indigo-800 whitespace-nowrap flex-shrink-0"
+                className="group relative flex items-center gap-1.5 sm:gap-2 px-2 py-1.5 sm:px-3 sm:py-2 bg-gradient-to-b from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-lg sm:rounded-xl font-bold text-[10px] sm:text-xs shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-300 border-2 border-indigo-800 whitespace-nowrap flex-shrink-0"
               >
                 <span className="uppercase tracking-wide">Add Company</span>
                 <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-white rounded-full border border-gray-300 shadow-sm group-hover:shadow-md transition-shadow overflow-hidden flex-shrink-0">
@@ -565,10 +429,9 @@ export function CompaniesPageContent() {
               </button>
             )}
 
-            {/* Mobile Filter Toggle Button */}
             <button
               onClick={() => setShowMobileFilters(!showMobileFilters)}
-              className="lg:hidden flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-xs md:text-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-xs md:text-sm"
             >
               <Filter className="h-3.5 w-3.5 md:h-4 md:w-4" />
               <span className="font-medium">Filters</span>
@@ -580,7 +443,7 @@ export function CompaniesPageContent() {
             </button>
           </div>
           
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="hidden md:flex items-center gap-2 sm:gap-3">
             {/* Add Company Button - Desktop: right side */}
             {user && (
               <button
@@ -707,41 +570,50 @@ export function CompaniesPageContent() {
               <Link
                 key={company.id}
                 href={`/company/${countryNameToSlug(company.country_name || countries.find(c => c.code === company.country)?.name || company.country)}/${company.slug || company.id}`}
-                className="bg-white shadow-md overflow-hidden hover:shadow-xl transition-all duration-200 cursor-pointer block border border-gray-200 hover:border-indigo-500 flex flex-col h-full relative"
+                className="bg-white rounded-none shadow-sm overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer block border border-gray-200 hover:border-indigo-500 flex flex-col h-full relative"
               >
-                {/* Voting icon in top right */}
-                <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md shadow-sm z-10">
-                  <img 
-                    src="/vote_7989058.png" 
-                    alt="Votes" 
-                    className="h-8 w-8 md:h-8 md:w-8 object-contain"
-                  />
-                  <span className="text-xs md:text-sm font-semibold text-indigo-700">{company.vote_count || 0}</span>
-                </div>
-                <div className="p-3 md:p-4 flex flex-col flex-grow">
-                  <div className="w-16 h-16 md:w-20 md:h-20 mb-2 md:mb-3 flex items-center justify-center bg-gray-100 overflow-hidden rounded">
-                    {company.logo_url ? (
-                      <img
-                        src={company.logo_url}
-                        alt={company.name}
-                        className="w-full h-full object-contain p-2"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          const parent = target.parentElement;
-                          if (parent) {
-                            parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400 text-xs font-semibold">${company.name.charAt(0).toUpperCase()}</div>`;
-                          }
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-semibold">
-                        {company.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
+                {/* Top banner */}
+                <div className="h-16 bg-gradient-to-r from-indigo-300 via-indigo-400 to-indigo-500" />
+
+                <div className="p-4 pb-0 flex flex-col flex-grow">
+                  {/* Header: logo + name */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div
+                      className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-white overflow-hidden rounded shadow-sm border-2 border-green-500"
+                      style={{ marginTop: '-8rem' }}
+                    >
+                      {company.logo_url ? (
+                        <img
+                          src={company.logo_url}
+                          alt={company.name}
+                          className="max-h-12 max-w-[90%] object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-gray-400 text-xs font-semibold">${company.name.charAt(0).toUpperCase()}</div>`;
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-semibold">
+                          {company.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <h3 className="text-sm md:text-base font-semibold text-gray-900 mb-0.5 md:mb-1 hover:text-indigo-600 transition-colors line-clamp-2">
+                        {company.name}
+                      </h3>
+                      <p className="text-[11px] md:text-xs text-gray-600 line-clamp-2">
+                        Review this company and earn points! Share your experience to help others.
+                      </p>
+                    </div>
                   </div>
-                  <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-1.5 md:mb-2 hover:text-indigo-600 transition-colors line-clamp-2">{company.name}</h3>
-                  <div className="flex items-center mb-2 md:mb-3">
+
+                  {/* Rating row */}
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star
@@ -753,19 +625,39 @@ export function CompaniesPageContent() {
                           }`}
                         />
                       ))}
+                      <span className="ml-1 md:ml-1.5 text-[11px] md:text-xs text-gray-500">
+                        ({company.total_votes || 0})
+                      </span>
                     </div>
-                    <span className="ml-1 md:ml-1.5 text-xs text-gray-500">
-                      ({company.total_votes || 0})
-                    </span>
+                    {company.vote_count !== undefined && (
+                      <span className="text-[11px] md:text-xs font-medium text-indigo-600">
+                        {company.vote_count || 0} votes
+                      </span>
+                    )}
                   </div>
-                  <div className="space-y-0.5 md:space-y-1 text-xs text-gray-600 mb-2 md:mb-3 flex-grow">
-                    <p className="truncate"><span className="font-medium">Category:</span> {company.category_name || 'N/A'}</p>
-                    <p><span className="font-medium">Established:</span> {company.established}</p>
-                    <p className="truncate"><span className="font-medium">Country:</span> {countries.find(c => c.code === company.country)?.name || company.country}</p>
+
+                  {/* Meta info */}
+                  <div className="space-y-0.5 md:space-y-1 text-[11px] md:text-xs text-gray-600 mb-3 flex-grow">
+                    <p className="truncate">
+                      <span className="font-medium">Category:</span> {company.category_name || 'N/A'}
+                    </p>
+                    <p>
+                      <span className="font-medium">Established:</span> {company.established}
+                    </p>
+                    <p className="truncate">
+                      <span className="font-medium">Country:</span> {countries.find(c => c.code === company.country)?.name || company.country}
+                    </p>
                   </div>
-                  <div className="mt-auto w-full inline-flex justify-center items-center px-2 md:px-3 py-1 md:py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors rounded">
+                </div>
+
+                {/* Bottom action area */}
+                <div className="mt-auto w-full border-t border-indigo-100 bg-indigo-50 px-4 py-3 flex justify-center">
+                  <button
+                    type="button"
+                    className="w-full inline-flex justify-center items-center px-3 py-2 text-xs md:text-sm font-semibold text-indigo-600 bg-white hover:bg-indigo-50 transition-colors rounded-md border border-indigo-500"
+                  >
                     View Details
-                  </div>
+                  </button>
                 </div>
               </Link>
               ))}

@@ -350,7 +350,7 @@ export function ClassifiedDetailsPageContent({ slug }: Props) {
             <div className="lg:col-span-2">
               <article className="bg-white shadow-xl overflow-hidden border border-indigo-50">
                 {classified.image_url ? (
-                  <div className="relative h-48 sm:h-64 md:h-96 overflow-hidden">
+                  <div className="relative overflow-hidden aspect-[1200/630]">
                     <img src={classified.image_url} alt={classified.title} className="w-full h-full object-cover" />
                     {classified.is_premium === true && (
                       <div className="absolute top-2 md:top-4 right-2 md:right-4 z-10">
@@ -585,7 +585,7 @@ export function ClassifiedDetailsPageContent({ slug }: Props) {
                           className="group bg-white rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-200 flex-shrink-0 w-56 md:w-64 lg:w-72"
                         >
                           {item.image_url && (
-                            <div className="relative w-full h-32 md:h-36 lg:h-40 overflow-hidden">
+                            <div className="relative w-full overflow-hidden aspect-[1200/630]">
                               <img src={item.image_url} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                               <div className="absolute top-1.5 md:top-2 right-1.5 md:right-2 z-10">
                                 <span className="bg-yellow-500 text-white text-[10px] md:text-xs font-bold px-1.5 md:px-2 py-0.5 md:py-1 rounded-full uppercase shadow-lg flex items-center gap-0.5 md:gap-1">
@@ -623,7 +623,7 @@ export function ClassifiedDetailsPageContent({ slug }: Props) {
                           className="group bg-white rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-200 flex-shrink-0 w-56 md:w-64 lg:w-72"
                         >
                           {item.image_url && (
-                            <div className="relative w-full h-32 md:h-36 lg:h-40 overflow-hidden">
+                            <div className="relative w-full overflow-hidden aspect-[1200/630]">
                               <img src={item.image_url} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                             </div>
                           )}

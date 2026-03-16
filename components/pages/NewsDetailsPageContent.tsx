@@ -393,11 +393,11 @@ export function NewsDetailsPageContent({ slug }: Props) {
 
               <article itemScope itemType="https://schema.org/NewsArticle" className="bg-white overflow-hidden">
                 {article.image_url ? (
-                  <div className="mb-4 md:mb-6">
+                  <div className="mb-4 md:mb-6 overflow-hidden rounded-lg aspect-[1200/630]">
                     <img
                       src={article.image_url}
                       alt={article.title}
-                      className="w-full h-auto object-cover rounded-lg"
+                      className="w-full h-full object-cover"
                       itemProp="image"
                     />
                   </div>
@@ -476,7 +476,7 @@ export function NewsDetailsPageContent({ slug }: Props) {
                         {relatedArticle.categoryName && (
                           <div className="text-xs font-semibold text-blue-600 mb-1.5 md:mb-2">{relatedArticle.categoryName}</div>
                         )}
-                        <div className="w-full h-24 md:h-32 mb-2 overflow-hidden rounded-md">
+                        <div className="w-full mb-2 overflow-hidden rounded-md aspect-[1200/630]">
                           {relatedArticle.image_url ? (
                             <img
                               src={relatedArticle.image_url}

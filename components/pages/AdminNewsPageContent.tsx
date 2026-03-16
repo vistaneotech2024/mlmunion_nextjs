@@ -458,121 +458,119 @@ export function AdminNewsPageContent() {
           <div className="text-center py-12 text-gray-500">No news articles found.</div>
         ) : (
           <>
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {news.map((article) => (
-                <div key={article.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
-                  <div className="flex flex-col md:flex-row">
-                    {/* Image */}
-                    <div className="w-full md:w-64 h-48 md:h-48 flex-shrink-0 bg-gray-100">
-                      {article.image_url ? (
+                <div key={article.id} className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col h-full">
+                  {/* Image */}
+                  <div className="w-full bg-gray-100">
+                    {article.image_url ? (
+                      <div className="w-full overflow-hidden aspect-[1200/630]">
                         <img
                           src={article.image_url}
                           alt={article.title}
                           className="w-full h-full object-cover"
                         />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-                          No image
-                        </div>
-                      )}
-                    </div>
+                      </div>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm py-6">
+                        No image
+                      </div>
+                    )}
+                  </div>
 
-                    {/* Content */}
-                    <div className="flex-1 p-4 md:p-6">
-                      <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-                        <div className="flex-1">
-                          <h3 className="text-lg md:text-xl font-semibold text-gray-900">
-                            {article.title}
-                          </h3>
-                          <div className="flex flex-wrap items-center mt-2 gap-2 md:gap-3 text-sm text-gray-500">
-                            <div className="flex items-center">
-                              <User className="h-4 w-4 mr-1" />
-                              <span>{article.author?.username || 'N/A'}</span>
-                            </div>
-                            {article.news_category_name && (
-                              <div className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
-                                {article.news_category_name}
-                              </div>
-                            )}
-                            {article.country_name && (
-                              <div className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded">
-                                {article.country_name}
-                              </div>
-                            )}
-                            {article.company_name && (
-                              <div className="px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded">
-                                {article.company_name}
-                              </div>
-                            )}
-                            <div className="flex items-center">
-                              <Calendar className="h-4 w-4 mr-1" />
-                              <span>{new Date(article.created_at).toLocaleDateString()}</span>
-                            </div>
-                            <div className="flex items-center">
-                              <Eye className="h-4 w-4 mr-1" />
-                              <span>{article.views} views</span>
-                            </div>
-                            <div className="flex items-center">
-                              <ThumbsUp className="h-4 w-4 mr-1" />
-                              <span>{article.likes} likes</span>
-                            </div>
+                  {/* Content */}
+                  <div className="flex-1 p-4 md:p-5 flex flex-col">
+                    <div className="flex-1">
+                      <h3 className="text-lg md:text-base font-semibold text-gray-900 line-clamp-2">
+                        {article.title}
+                      </h3>
+                      <div className="flex flex-wrap items-center mt-2 gap-2 md:gap-3 text-xs md:text-sm text-gray-500">
+                        <div className="flex items-center">
+                          <User className="h-4 w-4 mr-1" />
+                          <span>{article.author?.username || 'N/A'}</span>
+                        </div>
+                        {article.news_category_name && (
+                          <div className="px-2 py-1 bg-blue-100 text-blue-800 text-[11px] font-medium rounded">
+                            {article.news_category_name}
                           </div>
+                        )}
+                        {article.country_name && (
+                          <div className="px-2 py-1 bg-green-100 text-green-800 text-[11px] font-medium rounded">
+                            {article.country_name}
+                          </div>
+                        )}
+                        {article.company_name && (
+                          <div className="px-2 py-1 bg-purple-100 text-purple-800 text-[11px] font-medium rounded">
+                            {article.company_name}
+                          </div>
+                        )}
+                        <div className="flex items-center">
+                          <Calendar className="h-4 w-4 mr-1" />
+                          <span>{new Date(article.created_at).toLocaleDateString()}</span>
                         </div>
-
-                        {/* Action buttons */}
-                        <div className="flex items-center justify-start md:justify-end gap-3 flex-wrap">
-                          {/* Preview */}
-                          {article.slug && (
-                            <Link
-                              href={`/news/${article.slug}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-3 md:p-2 text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
-                              title="Preview"
-                            >
-                              <Eye className="h-6 w-6 md:h-5 md:w-5" />
-                            </Link>
-                          )}
-                          {/* Edit */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingArticle(article);
-                              setShowModal(true);
-                            }}
-                            className="p-3 md:p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                            title="Edit"
-                          >
-                            <Edit className="h-6 w-6 md:h-5 md:w-5" />
-                          </button>
-                          {/* Delete */}
-                          <button
-                            type="button"
-                            onClick={() => deleteArticle(article.id)}
-                            className="p-3 md:p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 className="h-6 w-6 md:h-5 md:w-5" />
-                          </button>
-                          {/* Publish / Unpublish */}
-                          <button
-                            type="button"
-                            onClick={() => togglePublished(article)}
-                            className={`p-3 md:p-2 rounded-full transition-colors ${
-                              article.published
-                                ? 'text-green-600 hover:bg-green-50'
-                                : 'text-gray-400 hover:bg-gray-100'
-                            }`}
-                            title={article.published ? 'Unpublish' : 'Publish'}
-                          >
-                            {article.published ? (
-                              <Eye className="h-6 w-6 md:h-5 md:w-5" />
-                            ) : (
-                              <EyeOff className="h-6 w-6 md:h-5 md:w-5" />
-                            )}
-                          </button>
+                        <div className="flex items-center">
+                          <Eye className="h-4 w-4 mr-1" />
+                          <span>{article.views} views</span>
+                        </div>
+                        <div className="flex items-center">
+                          <ThumbsUp className="h-4 w-4 mr-1" />
+                          <span>{article.likes} likes</span>
                         </div>
                       </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="mt-3 flex items-center justify-end gap-2 flex-wrap">
+                      {/* Preview */}
+                      {article.slug && (
+                        <Link
+                          href={`/news/${article.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
+                          title="Preview"
+                        >
+                          <Eye className="h-5 w-5" />
+                        </Link>
+                      )}
+                      {/* Edit */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingArticle(article);
+                          setShowModal(true);
+                        }}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                        title="Edit"
+                      >
+                        <Edit className="h-5 w-5" />
+                      </button>
+                      {/* Delete */}
+                      <button
+                        type="button"
+                        onClick={() => deleteArticle(article.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                      {/* Publish / Unpublish */}
+                      <button
+                        type="button"
+                        onClick={() => togglePublished(article)}
+                        className={`p-2 rounded-full transition-colors ${
+                          article.published
+                            ? 'text-green-600 hover:bg-green-50'
+                            : 'text-gray-400 hover:bg-gray-100'
+                        }`}
+                        title={article.published ? 'Unpublish' : 'Publish'}
+                      >
+                        {article.published ? (
+                          <Eye className="h-5 w-5" />
+                        ) : (
+                          <EyeOff className="h-5 w-5" />
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>

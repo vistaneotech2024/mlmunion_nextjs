@@ -325,7 +325,7 @@ export function ClassifiedsList({
                   router.push(`/classifieds/${classified.slug}`);
                 }}
               >
-                <div className="relative w-full h-32 sm:h-36 overflow-hidden bg-gray-100">
+                <div className="relative w-full overflow-hidden bg-gray-100 aspect-[1200/630]">
                   {classified.image_url ? (
                     <img
                       src={classified.image_url}

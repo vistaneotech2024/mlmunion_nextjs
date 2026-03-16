@@ -1764,7 +1764,7 @@ export function CompanyDetailsPageContent({ country_name, slug }: CompanyDetails
                             >
                               <Link href={`/news/${newsItem.slug || newsItem.id}`} className="block">
                                 {/* Image with Category Tag Overlay */}
-                                <div className="relative h-40 sm:h-44 md:h-48 overflow-hidden">
+                                <div className="relative overflow-hidden aspect-[1200/630]">
                                   <img
                                     src={newsItem.image_url || 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=1024'}
                                     alt={newsItem.title}
@@ -1842,7 +1842,7 @@ export function CompanyDetailsPageContent({ country_name, slug }: CompanyDetails
                             >
                               <article className="h-full flex flex-col">
                                 {/* Image */}
-                                <div className="relative w-full h-32 md:h-40 overflow-hidden bg-gray-100">
+                                <div className="relative w-full overflow-hidden bg-gray-100 aspect-[1200/630]">
                                   {classified.image_url ? (
                                     <img
                                       src={classified.image_url}
@@ -1940,7 +1940,7 @@ export function CompanyDetailsPageContent({ country_name, slug }: CompanyDetails
                                 >
                                   <article className="h-full flex flex-col">
                                     {/* Image */}
-                                    <div className="relative w-full h-32 md:h-40 overflow-hidden bg-gray-100">
+                                    <div className="relative w-full overflow-hidden bg-gray-100 aspect-[1200/630]">
                                       {blog.cover_image ? (
                                         <img
                                           src={blog.cover_image}

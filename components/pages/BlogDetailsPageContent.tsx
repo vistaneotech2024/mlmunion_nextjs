@@ -480,7 +480,7 @@ export function BlogDetailsPageContent({ slug }: Props) {
                 </div>
 
                 {blog.cover_image ? (
-                  <div className="relative w-full h-48 sm:h-64 md:h-96 mb-4 md:mb-6 overflow-hidden rounded-lg">
+                  <div className="relative w-full mb-4 md:mb-6 overflow-hidden rounded-lg aspect-[1200/630]">
                     <img src={blog.cover_image} alt={blog.title} className="w-full h-full object-cover" />
                   </div>
                 ) : (
@@ -633,7 +633,7 @@ export function BlogDetailsPageContent({ slug }: Props) {
                             className="block group hover:bg-gray-50 p-2 md:p-3 rounded-lg transition-colors border border-gray-200"
                           >
                             {latestBlog.cover_image && (
-                              <div className="w-full h-24 md:h-32 mb-2 overflow-hidden rounded-md">
+                              <div className="w-full mb-2 overflow-hidden rounded-md aspect-[1200/630]">
                                 <img
                                   src={latestBlog.cover_image}
                                   alt={latestBlog.title}

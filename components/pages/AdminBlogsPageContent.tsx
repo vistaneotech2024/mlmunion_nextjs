@@ -433,7 +433,9 @@ export function AdminBlogsPageContent() {
               {filteredBlogs.map((blog) => (
                 <div key={blog.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
                   {blog.cover_image && (
-                    <img src={blog.cover_image} alt={blog.title} className="w-full h-48 md:h-40 object-cover" />
+                    <div className="w-full overflow-hidden aspect-[1200/630]">
+                      <img src={blog.cover_image} alt={blog.title} className="w-full h-full object-cover" />
+                    </div>
                   )}
                   <div className="p-5 md:p-4">
                     <div className="flex justify-between items-start mb-3">
@@ -699,11 +701,13 @@ export function AdminBlogsPageContent() {
                 ) : (
                   <div className="space-y-4">
                     {previewBlog.cover_image && (
-                      <img
-                        src={previewBlog.cover_image}
-                        alt={previewBlog.title}
-                        className="w-full max-h-[320px] object-cover rounded-md"
-                      />
+                      <div className="w-full overflow-hidden rounded-md aspect-[1200/630]">
+                        <img
+                          src={previewBlog.cover_image}
+                          alt={previewBlog.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                     )}
 
                     <div>

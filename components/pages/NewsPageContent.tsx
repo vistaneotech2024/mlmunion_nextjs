@@ -381,7 +381,7 @@ export function NewsPageContent() {
                   <Link href={`/news/${article.slug || article.id}`} className="block">
                     <div className="flex flex-col sm:flex-row gap-2 md:gap-4 p-2 md:p-3">
                       {/* Image on the left */}
-                      <div className="flex-shrink-0 w-full sm:w-32 h-32 md:w-40 md:h-40 overflow-hidden rounded">
+                      <div className="flex-shrink-0 w-full sm:w-32 md:w-40 overflow-hidden rounded aspect-[1200/630]">
                         {article.image_url ? (
                           <img
                             src={article.image_url}
@@ -467,7 +467,7 @@ export function NewsPageContent() {
             >
               <Link href={`/news/${article.slug || article.id}`} className="block">
                     {/* Image with Category Tag Overlay */}
-                <div className="relative h-40 sm:h-44 md:h-48 overflow-hidden">
+                <div className="relative overflow-hidden aspect-[1200/630]">
                   {article.image_url ? (
                     <img
                       src={article.image_url}
