@@ -1,7 +1,5 @@
 User-agent: * Allow: /
 
-Explicitly allow major AI and search crawlers
-
 User-agent: Googlebot Allow: /
 
 User-agent: Bingbot Allow: /
@@ -13,8 +11,6 @@ User-agent: DuckDuckBot Allow: /
 User-agent: Baiduspider Allow: /
 
 User-agent: YandexBot Allow: /
-
-AI Crawlers
 
 User-agent: GPTBot Allow: /
 
