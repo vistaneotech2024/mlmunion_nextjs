@@ -49,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const title = `${seller.full_name || seller.username || 'Seller'} - Direct Seller | MLM Union`;
     const location = [seller.city, seller.state, seller.country].filter(Boolean).join(', ');
     const descParts = [
-      `Connect with ${seller.full_name || seller.username}, a recommended direct seller specializing in ${(seller.specialties || []).join(', ') || 'network marketing'}.`,
+      `Connect with ${seller.full_name || seller.username}, a direct seller specializing in ${(seller.specialties || []).join(', ') || 'network marketing'}.`,
       seller.seller_bio ? truncate(seller.seller_bio, 120) : 'View their profile, achievements, and contact information.',
       location ? `Located in ${location}.` : '',
     ];
@@ -64,7 +64,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description: truncate(description, 160),
         url: canonical,
         siteName: 'MLM Union',
-        images: seller.image_url ? [{ url: seller.image_url, width: 1200, height: 630, alt: String(seller.full_name || seller.username) }] : undefined,
+        images: seller.image_url
+          ? [{ url: seller.image_url, width: 1200, height: 630, alt: String(seller.full_name || seller.username) }]
+          : undefined,
       },
       twitter: {
         card: seller.image_url ? 'summary_large_image' : 'summary',
@@ -80,7 +82,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function RecommendedDirectSellerDetailPage({ params }: Props) {
+export default async function DirectSellerShortDetailPage({ params }: Props) {
   const { username } = await params;
   const seller = await getSellerByUsername(username);
   if (!seller) notFound();

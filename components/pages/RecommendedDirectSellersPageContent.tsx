@@ -516,7 +516,7 @@ export function RecommendedDirectSellersPageContent() {
               {currentSellers.map((seller) => (
                 <Link
                   key={seller.id}
-                  href={`/recommended-direct-sellers/${seller.username}`}
+                  href={`/direct-sellers/${seller.username}`}
                   className="bg-white shadow-sm border border-gray-100 rounded-lg overflow-hidden hover:shadow-md hover:bg-indigo-20 transition-shadow transition-colors duration-200 relative flex flex-col h-full"
                   onMouseEnter={() => setHoveredSeller(seller.id)}
                   onMouseLeave={() => setHoveredSeller(null)}

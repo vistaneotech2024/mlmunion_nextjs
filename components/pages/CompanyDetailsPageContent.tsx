@@ -395,6 +395,107 @@ export function CompanyDetailsPageContent({ country_name, slug }: CompanyDetails
     return tmp.textContent || tmp.innerText || '';
   };
 
+  const renderCompanyDescription = (description: string) => {
+    const raw = (description || '').trim();
+    const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(raw);
+    if (!looksLikeHtml) {
+      return <p className="whitespace-pre-wrap">{raw}</p>;
+    }
+
+    // Minimal, allowlist-based sanitizer for company-provided HTML.
+    // Keeps basic formatting while preventing scripts/iframes/styles/handlers.
+    const container = document.createElement('div');
+    container.innerHTML = raw;
+
+    const allowedTags = new Set([
+      'H1',
+      'H2',
+      'H3',
+      'H4',
+      'P',
+      'BR',
+      'UL',
+      'OL',
+      'LI',
+      'STRONG',
+      'B',
+      'EM',
+      'I',
+      'U',
+      'A',
+      'BLOCKQUOTE',
+    ]);
+
+    const cleanNode = (node: Node) => {
+      // Remove comments
+      if (node.nodeType === Node.COMMENT_NODE) {
+        node.parentNode?.removeChild(node);
+        return;
+      }
+
+      if (node.nodeType !== Node.ELEMENT_NODE) return;
+      const el = node as HTMLElement;
+
+      // Drop disallowed elements but keep their text content by unwrapping.
+      if (!allowedTags.has(el.tagName)) {
+        const parent = el.parentNode;
+        if (!parent) return;
+        while (el.firstChild) parent.insertBefore(el.firstChild, el);
+        parent.removeChild(el);
+        return;
+      }
+
+      // Remove all attributes except safe links.
+      const attrs = Array.from(el.attributes);
+      for (const attr of attrs) {
+        const name = attr.name.toLowerCase();
+        if (el.tagName === 'A' && (name === 'href' || name === 'target' || name === 'rel')) continue;
+        el.removeAttribute(attr.name);
+      }
+
+      if (el.tagName === 'A') {
+        const href = el.getAttribute('href') || '';
+        const isSafeHref =
+          href.startsWith('http://') ||
+          href.startsWith('https://') ||
+          href.startsWith('mailto:') ||
+          href.startsWith('tel:') ||
+          href.startsWith('/') ||
+          href.startsWith('#');
+        if (!isSafeHref) {
+          el.removeAttribute('href');
+        } else {
+          // Force safe link behavior if it opens a new tab.
+          if (el.getAttribute('target') === '_blank') {
+            el.setAttribute('rel', 'noopener noreferrer');
+          } else {
+            el.removeAttribute('target');
+            el.removeAttribute('rel');
+          }
+        }
+      }
+
+      // Recurse (copy to avoid live collection issues on unwrap)
+      Array.from(el.childNodes).forEach(cleanNode);
+    };
+
+    Array.from(container.childNodes).forEach(cleanNode);
+
+    return (
+      <div
+        className="whitespace-normal text-gray-700 leading-relaxed space-y-4
+          [&_h1]:text-xl [&_h1]:font-bold [&_h1]:text-gray-900
+          [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-gray-900
+          [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-gray-900
+          [&_p]:text-sm md:[&_p]:text-base [&_p]:leading-relaxed
+          [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5
+          [&_a]:text-indigo-600 [&_a]:font-medium hover:[&_a]:text-indigo-700
+          [&_blockquote]:border-l-4 [&_blockquote]:border-gray-200 [&_blockquote]:pl-4 [&_blockquote]:text-gray-600"
+        dangerouslySetInnerHTML={{ __html: container.innerHTML }}
+      />
+    );
+  };
+
   const handleLoadMoreNews = () => {
     const nextCount = newsToShow + 3;
     setNewsToShow(nextCount);
@@ -1100,7 +1201,7 @@ export function CompanyDetailsPageContent({ country_name, slug }: CompanyDetails
                   </div>
 
                   <div className="text-sm md:text-base text-gray-700 leading-relaxed">
-                    <p className="whitespace-pre-wrap">{company.description}</p>
+                    {renderCompanyDescription(company.description)}
                   </div>
                 </div>
               </div>
@@ -1545,7 +1646,7 @@ export function CompanyDetailsPageContent({ country_name, slug }: CompanyDetails
                         {recommendedSellers.map((seller) => (
                           <Link
                             key={seller.id}
-                            href={`/recommended-direct-sellers/${seller.username}`}
+                            href={`/direct-sellers/${seller.username}`}
                             className="bg-white shadow-sm border border-gray-100 rounded-lg overflow-hidden hover:shadow-md hover:bg-indigo-50 transition-shadow transition-colors duration-200 relative flex items-center gap-4 p-3 md:p-4"
                           >
                             {/* Verification Badge */}
@@ -1652,7 +1753,10 @@ export function CompanyDetailsPageContent({ country_name, slug }: CompanyDetails
                 <div className="flex justify-center">
                   <SocialShare
                     title={company.name}
-                    text={company.description.substring(0, 100) + '...'}
+                    text={(() => {
+                      const plain = stripHtml(company.description || '').trim();
+                      return plain.length <= 100 ? plain : plain.slice(0, 100).trim() + '...';
+                    })()}
                     url={window.location.href}
                   />
                   </div>

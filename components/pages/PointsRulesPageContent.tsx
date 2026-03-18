@@ -15,6 +15,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import toast from 'react-hot-toast';
+import FairyDustCursor from '@/components/FairyDustCursor';
 
 interface PointActivity {
   id: string;
@@ -205,6 +206,15 @@ export function PointsRulesPageContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <FairyDustCursor
+        colors={['#FF0000', '#00FF00', '#0000FF']}
+        characterSet={['✨', '⭐', '🌟']}
+        particleSize={24}
+        particleCount={2}
+        gravity={0.015}
+        fadeSpeed={0.97}
+        initialVelocity={{ min: 0.7, max: 2.0 }}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
         <div className="mb-4">
           <button

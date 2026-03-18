@@ -38,6 +38,10 @@ export async function GET() {
     <loc>${escapeXml(`${baseUrl}/sitemap-classifieds.xml`)}</loc>
     <lastmod>${today}</lastmod>
   </sitemap>
+  <sitemap>
+    <loc>${escapeXml(`${baseUrl}/sitemap-direct-sellers.xml`)}</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
 </sitemapindex>`;
 
     return new NextResponse(xml, {

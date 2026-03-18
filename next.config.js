@@ -110,6 +110,25 @@ const nextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: '/sitemap-users.xml',
+        destination: '/sitemap-direct-sellers.xml',
+        permanent: true,
+      },
+      {
+        source: '/recommended-direct-sellers/:username',
+        destination: '/direct-sellers/:username',
+        permanent: true,
+      },
+      {
+        source: '/s/:username',
+        destination: '/direct-sellers/:username',
+        permanent: true,
+      },
+    ];
+  },
 }
 
 module.exports = nextConfig

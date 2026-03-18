@@ -687,7 +687,7 @@ function RecommendedUnconnectedDirectSellersCard() {
             return (
               <div key={r.id} className="px-4 py-3 flex items-center gap-3">
                 <Link
-                  href={`/recommended-direct-sellers/${encodeURIComponent(r.username)}`}
+                  href={`/direct-sellers/${encodeURIComponent(r.username)}`}
                   className="flex items-center gap-3 min-w-0 flex-1"
                 >
                   {r.image_url ? (
@@ -963,7 +963,7 @@ function TopEarners() {
             return (
               <Link
                 key={e.id}
-                href={`/recommended-direct-sellers/${e.username}`}
+                href={`/direct-sellers/${e.username}`}
                 className={`flex items-center gap-2.5 px-2.5 py-2.5 rounded-none border bg-gradient-to-r ${rowTint} hover:shadow-sm transition-shadow`}
               >
                 <div className="relative flex-shrink-0">
@@ -1118,7 +1118,7 @@ function RecommendedDirectSellersPreview() {
                 return (
                   <Link
                     key={`${s.id}-${i}`}
-                    href={`/recommended-direct-sellers/${encodeURIComponent(s.username)}`}
+                    href={`/direct-sellers/${encodeURIComponent(s.username)}`}
                     className="group bg-white rounded-none border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-4 flex items-center gap-4 min-w-[320px] sm:min-w-[360px] md:min-w-[420px]"
                   >
                     {avatar ? (
