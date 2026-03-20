@@ -1,0 +1,17 @@
+{
+  "runId": "9a2dd182-914b-451d-b766-1087e7d82543",
+  "state": "completed",
+  "startedAt": "2026-03-20T10:50:39.254Z",
+  "totalCompanies": 2,
+  "savedCount": 0,
+  "failedCount": 2,
+  "progress": {
+    "index": 2,
+    "total": 2
+  },
+  "lastCompany": "Pune court declares MLM scheme illegal, orders closure",
+  "lastTasks": null,
+  "lastMessage": "╚═══════════════════════════════════════════════════════╝\\n",
+  "exitCode": 0,
+  "finishedAt": "2026-03-20T10:52:21.502Z"
+}

@@ -1,0 +1,24 @@
+[
+  {
+    "scheduleId": "b4355a9b-b005-4729-af85-2957838c6b84",
+    "scheduledFor": "2026-03-20T12:12:00.000Z",
+    "createdAt": "2026-03-20T12:09:40.619Z",
+    "topics": [
+      "MLM Products"
+    ],
+    "language": "English",
+    "status": "completed",
+    "posterRunId": "news-poster-1774008580880-64bffac710135"
+  },
+  {
+    "scheduleId": "af604990-4738-461c-9912-c51b1f75de36",
+    "scheduledFor": "2026-03-20T12:24:00.000Z",
+    "createdAt": "2026-03-20T12:22:41.446Z",
+    "topics": [
+      "mlm software AI"
+    ],
+    "language": "Hindi",
+    "status": "completed",
+    "posterRunId": "news-poster-1774009361706-80bb54d7cfbd7"
+  }
+]

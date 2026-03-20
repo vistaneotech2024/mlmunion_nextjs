@@ -1,0 +1,18 @@
+{
+  "runId": "7d6c0759-d9ae-4e1c-ac8c-cebe124549fd",
+  "state": "completed",
+  "startedAt": "2026-03-20T07:16:00.112Z",
+  "totalCompanies": 468,
+  "savedCount": 0,
+  "failedCount": 0,
+  "progress": {
+    "index": 0,
+    "total": null
+  },
+  "lastCompany": null,
+  "lastTasks": [],
+  "lastMessage": "Job finished with exit code 0",
+  "exitCode": 0,
+  "finishedAt": "2026-03-20T07:16:05.961Z",
+  "lastLogLine": "╚══════════════════════════════════════════════════════════╝\\n"
+}

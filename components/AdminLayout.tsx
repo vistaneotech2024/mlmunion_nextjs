@@ -49,6 +49,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { path: '/admin/hero-banners', icon: Image, label: 'Hero Banners' },
     { path: '/admin/locations', icon: MapPin, label: 'Locations' },
     { path: '/admin/companies', icon: Building2, label: 'Companies' },
+    { path: '/admin/automation-tools', icon: Settings, label: 'Automation Tools' },
     { path: '/admin/blogs', icon: FileText, label: 'Blogs' },
     { path: '/admin/news', icon: Newspaper, label: 'News' },
     { path: '/admin/classifieds', icon: MessageSquare, label: 'Classifieds' },

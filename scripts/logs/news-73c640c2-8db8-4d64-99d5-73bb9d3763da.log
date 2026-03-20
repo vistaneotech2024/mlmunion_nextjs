@@ -1,0 +1,32 @@
+[4:27:37 pm] → Step 1/3 — Generating 2 news topic options…
+[4:27:43 pm] → Generated topics: 1) Eco-Friendly Trend Boosts Indian Direct Selling Sector | 2) Indian Government Enforces Stricter MLM Regulations
+[4:27:43 pm] → Step 2/3 — Writing article for: Eco-Friendly Trend Boosts Indian Direct Selling Sector
+[4:27:53 pm] ✓ Article written: "Eco-Friendly Trend Boosts Indian Direct Selling Sector" (3421 chars)
+[4:27:53 pm] → Step 3/5 — Downloading image for: "network marketing business team"…
+[4:27:54 pm] ⚠ Image source failed (attempt 1): Image download 503
+[4:27:55 pm] ⚠ Image source failed (attempt 1): Image download 503
+[4:27:56 pm] ⚠ Image source failed (attempt 1): Image download 503
+[4:27:58 pm] ⚠ Image source failed (attempt 2): Image download 503
+[4:27:59 pm] ⚠ Image source failed (attempt 2): Image download 503
+[4:28:00 pm] ⚠ Image source failed (attempt 2): Image download 503
+[4:28:05 pm] ⚠ Image source failed (attempt 3): Image download 503
+[4:28:05 pm] ⚠ Image source failed (attempt 3): Image download 503
+[4:28:06 pm] ⚠ Image source failed (attempt 3): Image download 503
+[4:28:06 pm] ⚠ Image pipeline failed. Publishing without image. Reason: Could not download any image
+[4:28:06 pm] → Step 5/5 — Publishing news post to database…
+[4:28:06 pm] ✓ Published! ID: 7a8b38b8-feed-4d2e-b508-a15cc1840494 | Slug: eco-friendly-trend-boosts-indian-direct-selling-sector
+[4:28:06 pm] → Step 2/3 — Writing article for: Indian Government Enforces Stricter MLM Regulations
+[4:28:19 pm] ✓ Article written: "Indian Government Enforces Stricter MLM Regulations" (3200 chars)
+[4:28:19 pm] → Step 3/5 — Downloading image for: "law books regulation"…
+[4:28:20 pm] ⚠ Image source failed (attempt 1): Image download 503
+[4:28:20 pm] ⚠ Image source failed (attempt 1): Image download 503
+[4:28:21 pm] ⚠ Image source failed (attempt 1): Image download 503
+[4:28:24 pm] ⚠ Image source failed (attempt 2): Image download 503
+[4:28:25 pm] ⚠ Image source failed (attempt 2): Image download 503
+[4:28:25 pm] ⚠ Image source failed (attempt 2): Image download 503
+[4:28:30 pm] ⚠ Image source failed (attempt 3): Image download 503
+[4:28:31 pm] ⚠ Image source failed (attempt 3): Image download 503
+[4:28:32 pm] ⚠ Image source failed (attempt 3): Image download 503
+[4:28:32 pm] ⚠ Image pipeline failed. Publishing without image. Reason: Could not download any image
+[4:28:32 pm] → Step 5/5 — Publishing news post to database…
+[4:28:32 pm] ✓ Published! ID: 4338e33c-d319-4650-930d-c2ab1a7698db | Slug: indian-government-enforces-stricter-mlm-regulations

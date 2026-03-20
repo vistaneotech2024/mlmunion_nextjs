@@ -1,0 +1,17 @@
+{
+  "runId": "5093ea9f-df04-4133-8005-48169fd46148",
+  "state": "completed",
+  "startedAt": "2026-03-20T10:50:37.959Z",
+  "totalCompanies": 2,
+  "savedCount": 0,
+  "failedCount": 2,
+  "progress": {
+    "index": 2,
+    "total": 2
+  },
+  "lastCompany": "Major Crackdown on Pyramid Schemes in India",
+  "lastTasks": null,
+  "lastMessage": "╚═══════════════════════════════════════════════════════╝\\n",
+  "exitCode": 0,
+  "finishedAt": "2026-03-20T10:52:22.059Z"
+}

@@ -1,0 +1,20 @@
+{
+  "runId": "4bf2f258-4f73-4cc5-9269-273a5d5b159f",
+  "state": "completed",
+  "startedAt": "2026-03-20T07:19:09.138Z",
+  "totalCompanies": 468,
+  "savedCount": 0,
+  "failedCount": 1,
+  "progress": {
+    "index": 100,
+    "total": 468
+  },
+  "lastCompany": "Direct Bazaar Pvt. Ltd.",
+  "lastTasks": [
+    "description"
+  ],
+  "lastMessage": "[12:49:28 pm] ✗   FAILED: No JSON in response: \"{",
+  "exitCode": 0,
+  "finishedAt": "2026-03-20T07:19:32.058Z",
+  "lastLogLine": "╚══════════════════════════════════════════════════════════╝\\n"
+}

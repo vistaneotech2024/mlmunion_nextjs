@@ -1,0 +1,17 @@
+{
+  "runId": "2b6be360-bce3-4ad9-921f-6bc027ca04ff",
+  "state": "completed",
+  "startedAt": "2026-03-20T11:18:46.240Z",
+  "totalCompanies": 1,
+  "savedCount": 1,
+  "failedCount": 0,
+  "progress": {
+    "index": 1,
+    "total": 1
+  },
+  "lastCompany": "India Tightens Regulations on Direct Selling Industry",
+  "lastTasks": null,
+  "lastMessage": "INFO Failed: 0",
+  "exitCode": 0,
+  "finishedAt": "2026-03-20T11:20:14.157Z"
+}

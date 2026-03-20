@@ -1,0 +1,17 @@
+{
+  "runId": "1821dc7b-ab90-4d28-938d-0c448a64ed1a",
+  "state": "completed",
+  "startedAt": "2026-03-20T11:25:36.230Z",
+  "totalCompanies": 1,
+  "savedCount": 1,
+  "failedCount": 0,
+  "progress": {
+    "index": 1,
+    "total": 1
+  },
+  "lastCompany": "India Announces New Direct Selling Regulations",
+  "lastTasks": null,
+  "lastMessage": "INFO Failed: 0",
+  "exitCode": 0,
+  "finishedAt": "2026-03-20T11:27:03.254Z"
+}

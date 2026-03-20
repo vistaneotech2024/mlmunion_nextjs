@@ -1,0 +1,15 @@
+\n╔══════════════════════════════════════════════════════════╗
+║   MLM Union — SEO Bulk Updater  (GPT-4o Enhanced v3)    ║
+║   ✦ Unique content per company  ✦ Always approved       ║
+╚══════════════════════════════════════════════════════════╝\n
+[12:46:03 pm] → Loading companies from Supabase…
+[12:46:05 pm] → Found 468 companies — ALL will be approved
+[12:46:05 pm] → Model: gpt-4o | Delay: 3000ms | Batch: 500
+[12:46:05 pm] → SEO Tasks: description, website, focus_keyword, meta_description
+[12:46:05 pm] → Fallback URL pattern: https://www.mlmunion.in/company/india/<slug>
+[12:46:05 pm] → Log: logs/run-1773990963247.log\n
+\n╔══════════════════════════════════════════════════════════╗
+║  ✅  Approved + Updated : 0                             ║
+║  ❌  Failed             : 0                             ║
+║  📄  Log: logs/run-1773990963247.log                 ║
+╚══════════════════════════════════════════════════════════╝\n

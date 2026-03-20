@@ -1,0 +1,17 @@
+{
+  "runId": "73c640c2-8db8-4d64-99d5-73bb9d3763da",
+  "state": "completed",
+  "startedAt": "2026-03-20T10:57:36.087Z",
+  "totalCompanies": 2,
+  "savedCount": 2,
+  "failedCount": 0,
+  "progress": {
+    "index": 2,
+    "total": 2
+  },
+  "lastCompany": "Indian Government Enforces Stricter MLM Regulations",
+  "lastTasks": null,
+  "lastMessage": "╚═══════════════════════════════════════════════════════╝\\n",
+  "exitCode": 0,
+  "finishedAt": "2026-03-20T10:59:27.425Z"
+}

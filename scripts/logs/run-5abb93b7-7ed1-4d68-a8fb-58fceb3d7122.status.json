@@ -1,0 +1,18 @@
+{
+  "runId": "5abb93b7-7ed1-4d68-a8fb-58fceb3d7122",
+  "state": "failed",
+  "startedAt": "2026-03-20T07:16:00.112Z",
+  "totalCompanies": null,
+  "savedCount": 0,
+  "failedCount": 0,
+  "progress": {
+    "index": 0,
+    "total": null
+  },
+  "lastCompany": null,
+  "lastTasks": [],
+  "lastMessage": "Job finished with exit code 3221225786",
+  "exitCode": 3221225786,
+  "finishedAt": "2026-03-20T07:16:05.931Z",
+  "lastLogLine": "[12:46:03 pm] → Loading companies from Supabase…"
+}

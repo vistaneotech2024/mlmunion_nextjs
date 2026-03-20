@@ -1,0 +1,22 @@
+INFO MLM Union — News Post Automation (single post)
+[5:54:03 pm] INFO Step 1/3 — Generating news research from provided topic…
+[5:54:08 pm] INFO Generated from input: एआई के साथ एमएलएम सॉफ्टवेयर का नया युग
+INFO [1/1] Processing topic: एआई के साथ एमएलएम सॉफ्टवेयर का नया युग
+[5:54:08 pm] INFO Step 2/3 — Writing article for: एआई के साथ एमएलएम सॉफ्टवेयर का नया युग
+[5:54:21 pm] OK Article written: "एआई के साथ एमएलएम सॉफ्टवेयर का नया युग" (2142 chars)
+[5:54:21 pm] INFO Step 3/5 — Downloading image for: "AI MLM software"…
+[5:54:22 pm] WARN Image source failed (attempt 1): Image download 503
+[5:54:23 pm] WARN Image source failed (attempt 1): Image download 503
+[5:54:23 pm] WARN Image source failed (attempt 1): Image download 503
+[5:54:26 pm] WARN Image source failed (attempt 2): Image download 503
+[5:54:27 pm] WARN Image source failed (attempt 2): Image download 503
+[5:54:28 pm] WARN Image source failed (attempt 2): Image download 503
+[5:54:32 pm] WARN Image source failed (attempt 3): Image download 503
+[5:54:34 pm] WARN Image source failed (attempt 3): Image download 503
+[5:54:34 pm] WARN Image source failed (attempt 3): Image download 503
+[5:54:34 pm] WARN Image pipeline failed. Publishing without image. Reason: Could not download any image
+[5:54:34 pm] INFO Step 5/5 — Publishing news post to database…
+[5:54:35 pm] OK Published! ID: fa8ba81b-1c5a-4933-8300-1ccd3608547f | Slug: ai-ke-sath-mlm-software-ka-naya-yug
+INFO Run summary
+INFO Saved: 1
+INFO Failed: 0

@@ -1,0 +1,18 @@
+\n╔══════════════════════════════════════════════════════════╗
+║   MLM Union — SEO Bulk Updater  (GPT-4o Enhanced v3)    ║
+║   ✦ Unique content per company  ✦ Always approved       ║
+╚══════════════════════════════════════════════════════════╝\n
+[12:49:10 pm] → Loading companies from Supabase…
+[12:49:12 pm] → Found 468 companies — ALL will be approved
+[12:49:12 pm] → Model: gpt-4o | Delay: 3000ms | Batch: 500
+[12:49:12 pm] → SEO Tasks: description, website, focus_keyword, meta_description
+[12:49:12 pm] → Fallback URL pattern: https://www.mlmunion.in/company/india/<slug>
+[12:49:12 pm] → Log: logs/run-1773991150355.log\n
+[12:49:12 pm] → [100/468] Direct Bazaar Pvt. Ltd.  tasks=[description]
+[12:49:28 pm] ✗   FAILED: No JSON in response: "{
+"description": "<h2>Introduction</h2><p>In the vibrant streets of Gujarat, a"
+\n╔══════════════════════════════════════════════════════════╗
+║  ✅  Approved + Updated : 0                             ║
+║  ❌  Failed             : 1                             ║
+║  📄  Log: logs/run-1773991150355.log                 ║
+╚══════════════════════════════════════════════════════════╝\n
